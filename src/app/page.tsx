@@ -484,10 +484,10 @@ export default function Home() {
       </header>
 
       {/* Main Container: Full-Height Flex Split Screen */}
-      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-73px)] overflow-hidden">
+      <main className="flex-1 flex flex-col md:flex-row md:h-[calc(100vh-73px)] md:overflow-hidden">
         
         {/* Left Panel: Inputs (Scrollable) */}
-        <section className="w-full md:w-1/2 h-full overflow-y-auto p-6 md:p-8 space-y-8 border-r border-zinc-900 bg-zinc-950">
+        <section className="w-full md:w-1/2 h-auto md:h-full md:overflow-y-auto p-6 md:p-8 space-y-8 border-b md:border-b-0 md:border-r border-zinc-900 bg-zinc-950">
           
           {/* Metadata Section */}
           <div className="space-y-4">
@@ -699,7 +699,7 @@ export default function Home() {
         </section>
 
         {/* Right Panel: Live Preview & Export */}
-        <section className="w-full md:w-1/2 h-full flex flex-col bg-zinc-900/40 relative">
+        <section className="w-full md:w-1/2 h-auto md:h-full flex flex-col bg-zinc-900/40 relative">
           
           {/* Header toolbar */}
           <div className="border-b border-zinc-900 px-6 py-4 flex flex-wrap items-center justify-between gap-3 bg-zinc-950/30">
@@ -762,7 +762,7 @@ export default function Home() {
           </div>
 
           {/* Preview/Edit Content Area */}
-          <div className="flex-1 overflow-y-auto p-6 md:p-8">
+          <div className="flex-1 md:overflow-y-auto p-6 md:p-8 min-h-[400px] md:min-h-0">
             {isLoading ? (
               // Pulse Skeleton Screen
               <div className="space-y-6 animate-pulse">
