@@ -242,7 +242,7 @@ export default function Home() {
     document.body.removeChild(link);
   };
 
-  // Download PDF using our high-fidelity text-wrapping renderer matching SSG standard
+  // Download PDF using our high-fidelity text-wrapping renderer matching 1st Early Regular Meeting standard
   const downloadPDF = () => {
     if (!minutes) return;
     
@@ -259,9 +259,8 @@ export default function Home() {
     const contentWidth = pageWidth - (marginX * 2);
 
     let y = marginY;
-    const lineHeight = 16;
-    const headingHeight = 22;
-    const titleHeight = 26;
+    const lineHeight = 15;
+    const headingHeight = 20;
 
     // Set initial font
     doc.setFont('Helvetica', 'normal');
@@ -270,9 +269,11 @@ export default function Home() {
     // Split markdown by lines
     const lines = minutes.split('\n');
     let inRollCall = false;
+    let inDiscussion = false;
 
     for (let i = 0; i < lines.length; i++) {
-      let lineText = lines[i].trim();
+      const rawLineText = lines[i];
+      let lineText = rawLineText.trim();
       
       // Skip empty lines, just add vertical spacing
       if (lineText === '') {
@@ -284,84 +285,118 @@ export default function Home() {
         continue;
       }
 
-      // Check section headers to manage inRollCall state
-      if (lineText.startsWith('## ')) {
-        const lowerLine = lineText.toLowerCase();
-        if (lowerLine.includes('roll call') || lowerLine.includes('attendance')) {
-          inRollCall = true;
-        } else {
-          inRollCall = false;
-        }
+      // Check if original line had bolding in markdown
+      const isOriginalBold = (lineText.startsWith('**') && lineText.endsWith('**')) ||
+                             (lineText.startsWith('__') && lineText.endsWith('__'));
+
+      // Completely remove all raw asterisks from the text
+      let cleanLine = lineText.replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '').trim();
+
+      // Manage section states based on Roman numerals
+      const lowerClean = cleanLine.toLowerCase();
+      if (lowerClean.includes('i. call to order')) {
+        inRollCall = false;
+        inDiscussion = false;
+      } else if (lowerClean.includes('iii. roll call') || lowerClean.includes('attendance')) {
+        inRollCall = true;
+        inDiscussion = false;
+      } else if (lowerClean.includes('v. discussion')) {
+        inDiscussion = true;
+        inRollCall = false;
+      } else if (lowerClean.includes('vi. adjournment') || lowerClean.includes('sign-off') || lowerClean.includes('certify')) {
+        inDiscussion = false;
+        inRollCall = false;
       }
 
-      // Check heading 1 (# ) -> Center and Uppercase like SSG
-      if (lineText.startsWith('# ')) {
-        const heading = lineText.replace('# ', '').trim();
+      // Check title block (first # heading) -> Left aligned, uppercase, bold, size 11, letter spacing
+      if (lineText.startsWith('# ') || (i === 0 && !lineText.startsWith('#') && cleanLine.toUpperCase() === cleanLine)) {
+        const titleContent = lineText.startsWith('# ') ? lineText.replace('# ', '').trim() : cleanLine;
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(14);
+        doc.setFontSize(11);
         
-        const splitLines = doc.splitTextToSize(heading.toUpperCase(), contentWidth);
+        const splitLines = doc.splitTextToSize(titleContent.toUpperCase(), contentWidth);
         for (const line of splitLines) {
-          if (y + titleHeight > pageHeight - marginY) {
+          if (y + 16 > pageHeight - marginY) {
             doc.addPage();
             y = marginY;
           }
-          const textWidth = doc.getTextWidth(line);
-          const centerX = (pageWidth - textWidth) / 2;
-          doc.text(line, centerX, y + 10);
-          y += titleHeight;
-        }
-        doc.setFont('Helvetica', 'normal');
-        y += 12; // spacing after title
-        continue;
-      }
-
-      // Check heading 2 (## )
-      if (lineText.startsWith('## ')) {
-        const heading = lineText.replace('## ', '').trim();
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(11.5);
-        
-        const splitLines = doc.splitTextToSize(heading.toUpperCase(), contentWidth);
-        for (const line of splitLines) {
-          if (y + headingHeight > pageHeight - marginY) {
-            doc.addPage();
-            y = marginY;
-          }
-          y += 12; // add space before section
           doc.text(line, marginX, y);
-          y += headingHeight;
+          y += 16;
         }
         doc.setFont('Helvetica', 'normal');
+        y += 12; // spacing after title block
         continue;
       }
 
-      // Check heading 3 (### )
-      if (lineText.startsWith('### ')) {
-        const heading = lineText.replace('### ', '').trim();
+      // Check section headings (e.g. ## I. CALL TO ORDER, etc.)
+      const isHeading2 = lineText.startsWith('## ') || 
+                         /^(I|II|III|IV|V|VI)\.\s+[A-Z\s]+/.test(cleanLine);
+      
+      if (isHeading2) {
+        let headingText = cleanLine;
+        if (lineText.startsWith('## ')) {
+          headingText = cleanLine.replace(/^##\s+/, '').trim();
+        }
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(10.5);
         
-        const splitLines = doc.splitTextToSize(heading, contentWidth);
-        for (const line of splitLines) {
-          if (y + headingHeight > pageHeight - marginY) {
-            doc.addPage();
-            y = marginY;
-          }
-          doc.text(line, marginX, y);
-          y += headingHeight;
+        if (y + 22 > pageHeight - marginY) {
+          doc.addPage();
+          y = marginY;
         }
+        
+        y += 12; // spacing before heading
+        doc.text(headingText.toUpperCase(), marginX, y);
+        y += headingHeight;
         doc.setFont('Helvetica', 'normal');
         continue;
       }
 
-      // Check for Roll Call Attendee layout (Role - Name)
-      if (inRollCall && (lineText.includes(' - ') || lineText.includes(' – '))) {
-        const cleanLine = lineText.replace(/^[\s\-\*\d\.\s]+/, '').trim();
+      // Check subheadings (e.g. ### or bold numbered topics like "1. Schedule and Venue")
+      const isSubHeading = lineText.startsWith('### ') || 
+                           (/^\d+\.\s+/.test(cleanLine) && isOriginalBold) ||
+                           (/^\d+\.\s+/.test(cleanLine) && inDiscussion);
+      
+      if (isSubHeading) {
+        let headingText = cleanLine;
+        if (lineText.startsWith('### ')) {
+          headingText = cleanLine.replace(/^###\s+/, '').trim();
+        }
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(10);
+        
+        if (y + 18 > pageHeight - marginY) {
+          doc.addPage();
+          y = marginY;
+        }
+        
+        doc.text(headingText, marginX, y);
+        y += 18;
+        doc.setFont('Helvetica', 'normal');
+        continue;
+      }
+
+      // Roll Call headings (PRESENT:, EXCUSED:, ABSENT:)
+      const isRollCallHeading = cleanLine === 'PRESENT:' || cleanLine === 'EXCUSED:' || cleanLine === 'ABSENT:';
+      if (inRollCall && isRollCallHeading) {
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(9.5);
+        if (y + lineHeight > pageHeight - marginY) {
+          doc.addPage();
+          y = marginY;
+        }
+        doc.text(cleanLine, marginX, y);
+        y += lineHeight + 4; // Add extra gap
+        doc.setFont('Helvetica', 'normal');
+        continue;
+      }
+
+      // Roll Call attendee columns alignment: Designation - Name
+      if (inRollCall && (cleanLine.includes(' - ') || cleanLine.includes(' – '))) {
         const divider = cleanLine.includes(' - ') ? ' - ' : ' – ';
         const parts = cleanLine.split(divider);
         if (parts.length >= 2) {
-          const role = parts[0].trim();
+          const designation = parts[0].trim();
           const name = parts[1].trim();
           
           if (y + lineHeight > pageHeight - marginY) {
@@ -369,35 +404,38 @@ export default function Home() {
             y = marginY;
           }
           
-          doc.setFont('Helvetica', 'bold');
-          doc.setFontSize(9.5);
-          doc.text(role, marginX, y);
+          // Role / Designation on the left
           doc.setFont('Helvetica', 'normal');
-          doc.text(name, marginX + 160, y);
+          doc.setFontSize(9.5);
+          doc.text(designation, marginX, y);
+          
+          // Aligned dash in center (170pt)
+          doc.text('-', marginX + 170, y);
+          
+          // Aligned Name on the right (195pt)
+          doc.text(name, marginX + 195, y);
+          
           y += lineHeight;
           continue;
         }
       }
 
-      // Check for Sign-off block trigger
-      if (lineText.toLowerCase().includes('i hereby certify')) {
-        // Prevent orphan signatures by ensuring the signature block fits
+      // Sign-off certification block
+      if (cleanLine.toLowerCase().includes('i hereby certify')) {
         if (y + 130 > pageHeight - marginY) {
           doc.addPage();
           y = marginY;
         }
         
-        // Print certification text
         doc.setFont('Helvetica', 'italic');
-        doc.setFontSize(10);
-        const splitCert = doc.splitTextToSize(lineText, contentWidth);
+        doc.setFontSize(9.5);
+        const splitCert = doc.splitTextToSize(cleanLine, contentWidth);
         for (const line of splitCert) {
           doc.text(line, marginX, y);
           y += lineHeight;
         }
         
-        // Setup side-by-side signature block
-        y += 48; // Space to sign
+        y += 48; // Spacing for signature lines
         
         if (y + 50 > pageHeight - marginY) {
           doc.addPage();
@@ -412,15 +450,15 @@ export default function Home() {
         doc.setLineWidth(0.75);
         doc.setDrawColor(120, 120, 120);
         
-        // Draw lines
+        // Draw side-by-side signature lines
         doc.line(leftLineX1, y, leftLineX2, y);
         doc.line(rightLineX1, y, rightLineX2, y);
         
         y += 12;
         
-        // Print names in bold
+        // Print names under signature lines
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(9.5);
+        doc.setFontSize(9);
         const secName = secretary || 'JANQUEL B. GEAGONIA';
         doc.text(secName.toUpperCase(), leftLineX1, y);
         
@@ -429,60 +467,95 @@ export default function Home() {
         
         y += 11;
         
-        // Print roles in normal font
         doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(8.5);
-        doc.text('Executive Secretary / Notes Taker', leftLineX1, y);
-        doc.text('Attested By: Chairperson / President', rightLineX1, y);
+        doc.setFontSize(8);
+        doc.setTextColor(110, 110, 110);
+        doc.text('Prepared by: Executive Secretary', leftLineX1, y);
+        doc.text('Attested By: President / Chairperson', rightLineX1, y);
+        doc.setTextColor(30, 30, 30);
         
-        // We've processed the custom signatures block, we can exit the parser loop
-        break;
+        break; // End of document
       }
 
-      // Check standard list items
+      // Check standard list items (bullets and nested bullets)
+      const rawLeading = rawLineText.match(/^\s*/)?.[0] || '';
+      const isIndented = rawLeading.length > 0 || rawLineText.startsWith('\t');
+      
       let isListItem = false;
-      let bulletOffset = 0;
-      if (lineText.startsWith('- ') || lineText.startsWith('* ')) {
-        lineText = lineText.substring(2);
+      let cleanedItemText = cleanLine;
+      
+      if (cleanLine.startsWith('- ') || cleanLine.startsWith('* ') || cleanLine.startsWith('• ')) {
+        cleanedItemText = cleanLine.replace(/^([\-\*•]\s+)/, '').trim();
         isListItem = true;
-        bulletOffset = 15;
-      } else if (/^\d+\.\s/.test(lineText)) {
-        const match = lineText.match(/^(\d+\.\s)/);
+      } else if (cleanLine.startsWith('o ')) {
+        cleanedItemText = cleanLine.replace(/^(o\s+)/, '').trim();
+        isListItem = true;
+      } else if (/^\d+\.\s+/.test(cleanLine)) {
+        const match = cleanLine.match(/^(\d+\.\s+)/);
         if (match) {
-          lineText = lineText.substring(match[0].length);
+          cleanedItemText = cleanLine.substring(match[0].length).trim();
           isListItem = true;
-          bulletOffset = 20;
         }
       }
 
       doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(10);
+      doc.setFontSize(9.5);
 
       if (isListItem) {
-        const isBullet = lines[i].trim().startsWith('- ') || lines[i].trim().startsWith('* ');
-        const bullet = isBullet ? '•' : (lines[i].trim().match(/^(\d+\.)/)?.[0] || '•');
+        let bulletChar = '•';
+        let bulletIndent = 15;
+        
+        if (isIndented) {
+          bulletIndent = 30;
+          if (inDiscussion) {
+            bulletChar = 'o'; // Open circular bullet for discussion nested items
+          } else {
+            bulletChar = '-'; // Dash bullet for agenda sub-items
+          }
+        } else {
+          const rawTrim = lines[i].trim();
+          if (rawTrim.startsWith('- ') || rawTrim.startsWith('* ')) {
+            bulletChar = '•';
+          } else {
+            // Check for numbered item
+            const matchNumber = rawTrim.match(/^(\d+\.)/);
+            if (matchNumber) {
+              bulletChar = matchNumber[0];
+              bulletIndent = 20;
+            }
+          }
+        }
         
         if (y + lineHeight > pageHeight - marginY) {
           doc.addPage();
           y = marginY;
         }
         
+        // Draw bullet
         doc.setFont('Helvetica', 'bold');
-        doc.text(bullet, marginX, y);
+        doc.text(bulletChar, marginX + (bulletIndent - 12), y);
         doc.setFont('Helvetica', 'normal');
         
-        const splitLines = doc.splitTextToSize(lineText, contentWidth - bulletOffset);
+        // Draw wrapped list item text
+        const textWidthLimit = contentWidth - bulletIndent;
+        const splitLines = doc.splitTextToSize(cleanedItemText, textWidthLimit);
         for (let j = 0; j < splitLines.length; j++) {
           if (y + lineHeight > pageHeight - marginY) {
             doc.addPage();
             y = marginY;
           }
-          doc.text(splitLines[j], marginX + bulletOffset, y);
+          doc.text(splitLines[j], marginX + bulletIndent, y);
           y += lineHeight;
         }
       } else {
-        // Normal paragraph
-        const splitLines = doc.splitTextToSize(lineText, contentWidth);
+        // Normal paragraph text
+        if (isOriginalBold) {
+          doc.setFont('Helvetica', 'bold');
+        } else {
+          doc.setFont('Helvetica', 'normal');
+        }
+        
+        const splitLines = doc.splitTextToSize(cleanLine, contentWidth);
         for (const line of splitLines) {
           if (y + lineHeight > pageHeight - marginY) {
             doc.addPage();
@@ -491,6 +564,7 @@ export default function Home() {
           doc.text(line, marginX, y);
           y += lineHeight;
         }
+        doc.setFont('Helvetica', 'normal');
       }
     }
 
