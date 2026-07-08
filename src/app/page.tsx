@@ -1,64 +1,847 @@
-import Image from "next/image";
+'use client';
+
+import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
+import ReactMarkdown from 'react-markdown';
+import { jsPDF } from 'jspdf';
+import { 
+  FileText, 
+  Upload, 
+  Trash2, 
+  Sparkles, 
+  Download, 
+  Copy, 
+  Check, 
+  Edit3, 
+  Eye, 
+  RefreshCw, 
+  AlertCircle,
+  FileCheck,
+  Calendar,
+  User,
+  Users,
+  Layers,
+  ArrowRight
+} from 'lucide-react';
 
 export default function Home() {
+  // State variables for form fields
+  const [title, setTitle] = useState('');
+  const [date, setDate] = useState('');
+  const [chair, setChair] = useState('');
+  const [secretary, setSecretary] = useState('');
+  const [rawNotes, setRawNotes] = useState('');
+  
+  // State for generated minutes and UI states
+  const [minutes, setMinutes] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'preview' | 'edit'>('preview');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number } | null>(null);
+
+  // File input ref
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sample files metadata
+  const sampleFiles = [
+    {
+      displayName: "Board Meeting Notes",
+      fileName: "To be edited (1).docx",
+      description: "Short, bulleted board meeting minutes ready to be polished."
+    },
+    {
+      displayName: "SSG July 6 Meeting",
+      fileName: "SSG-Meeting-Minutes-July6.docx",
+      description: "Comprehensive Student Council notes requiring structure."
+    },
+    {
+      displayName: "1st Regular Meeting",
+      fileName: "MINUTES OF THE 1st EARLY REGULAR MEETING ON THURSDAY, JANUARY 08, 2026..docx",
+      description: "Large organization notes with detailed items and discussion."
+    }
+  ];
+
+  // Helper to load sample files
+  const handleLoadSample = async (fileName: string) => {
+    setError('');
+    setSuccess('');
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/load-sample?file=${encodeURIComponent(fileName)}`);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to load sample file');
+      }
+
+      setRawNotes(data.text);
+      if (data.title) {
+        setTitle(data.title);
+      }
+      // Populate other fields if empty
+      if (!date) setDate(new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
+      if (!chair) setChair('Board President');
+      if (!secretary) setSecretary('Executive Assistant');
+
+      setUploadedFile({ name: fileName, size: 0 }); // Mark as loaded
+      setSuccess(`Successfully loaded and parsed sample: "${fileName}"`);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load sample');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Drag handlers
+  const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+  };
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      await processFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      await processFile(e.target.files[0]);
+    }
+  };
+
+  // Upload & parse file using /api/parse-docx
+  const processFile = async (file: File) => {
+    if (!file.name.endsWith('.docx')) {
+      setError('Unsupported file type. Please upload a Microsoft Word (.docx) file.');
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch('/api/parse-docx', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to parse file');
+      }
+
+      setRawNotes(data.text);
+      setUploadedFile({ name: data.fileName, size: data.size });
+      setSuccess(`Successfully uploaded and parsed "${data.fileName}" (${Math.round(data.size / 1024)} KB)`);
+      
+      // Auto-set title from file name if title is empty
+      if (!title) {
+        const cleanName = data.fileName.replace('.docx', '').replace(/[-_]/g, ' ');
+        setTitle(cleanName.charAt(0).toUpperCase() + cleanName.slice(1));
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error parsing document.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const clearFile = () => {
+    setUploadedFile(null);
+    setRawNotes('');
+    setSuccess('');
+    setError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Generate MoM using /api/generate
+  const handleGenerateMinutes = async () => {
+    if (!rawNotes.trim()) {
+      setError('Please provide raw meeting notes or upload a .docx file first.');
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setIsLoading(true);
+    setMinutes('');
+
+    try {
+      const response = await fetch('/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          date,
+          chair,
+          secretary,
+          rawNotes,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to generate Minutes of the Meeting');
+      }
+
+      setMinutes(data.minutes);
+      setActiveTab('preview');
+      setSuccess('Successfully generated Minutes of the Meeting!');
+    } catch (err: any) {
+      setError(err.message || 'Error occurred while contacting the Gemini API.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Copy Markdown to Clipboard
+  const copyToClipboard = () => {
+    if (!minutes) return;
+    navigator.clipboard.writeText(minutes);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Download Markdown file
+  const downloadMarkdown = () => {
+    if (!minutes) return;
+    const blob = new Blob([minutes], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    const fileTitle = title ? title.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'meeting';
+    link.href = url;
+    link.setAttribute('download', `${fileTitle}_minutes.md`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Download PDF using our high-fidelity text-wrapping renderer
+  const downloadPDF = () => {
+    if (!minutes) return;
+    
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'pt',
+      format: 'letter',
+    });
+
+    const marginX = 54;
+    const marginY = 54;
+    const pageHeight = 792; // Letter height in pt
+    const pageWidth = 612;  // Letter width in pt
+    const contentWidth = pageWidth - (marginX * 2);
+
+    let y = marginY;
+    const lineHeight = 16;
+    const headingHeight = 22;
+    const titleHeight = 28;
+
+    // Set initial font
+    doc.setFont('Helvetica', 'normal');
+
+    // Split markdown by lines
+    const lines = minutes.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      let lineText = lines[i].trim();
+      
+      // Skip empty lines, just add vertical spacing
+      if (lineText === '') {
+        y += 10;
+        if (y > pageHeight - marginY) {
+          doc.addPage();
+          y = marginY;
+        }
+        continue;
+      }
+
+      // Check heading 1 (# )
+      if (lineText.startsWith('# ')) {
+        const heading = lineText.replace('# ', '').trim();
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(16);
+        
+        const splitLines = doc.splitTextToSize(heading, contentWidth);
+        for (const line of splitLines) {
+          if (y + titleHeight > pageHeight - marginY) {
+            doc.addPage();
+            y = marginY;
+          }
+          doc.text(line, marginX, y + 10);
+          y += titleHeight;
+        }
+        doc.setFont('Helvetica', 'normal');
+        continue;
+      }
+
+      // Check heading 2 (## )
+      if (lineText.startsWith('## ')) {
+        const heading = lineText.replace('## ', '').trim();
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(12);
+        
+        const splitLines = doc.splitTextToSize(heading, contentWidth);
+        for (const line of splitLines) {
+          if (y + headingHeight > pageHeight - marginY) {
+            doc.addPage();
+            y = marginY;
+          }
+          y += 10; // add space before section
+          doc.text(line, marginX, y);
+          y += headingHeight;
+        }
+        doc.setFont('Helvetica', 'normal');
+        continue;
+      }
+
+      // Check heading 3 (### )
+      if (lineText.startsWith('### ')) {
+        const heading = lineText.replace('### ', '').trim();
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(11);
+        
+        const splitLines = doc.splitTextToSize(heading, contentWidth);
+        for (const line of splitLines) {
+          if (y + headingHeight > pageHeight - marginY) {
+            doc.addPage();
+            y = marginY;
+          }
+          doc.text(line, marginX, y);
+          y += headingHeight;
+        }
+        doc.setFont('Helvetica', 'normal');
+        continue;
+      }
+
+      // Check list items
+      let isListItem = false;
+      let bulletOffset = 0;
+      if (lineText.startsWith('- ') || lineText.startsWith('* ')) {
+        lineText = lineText.substring(2);
+        isListItem = true;
+        bulletOffset = 15;
+      } else if (/^\d+\.\s/.test(lineText)) {
+        const match = lineText.match(/^(\d+\.\s)/);
+        if (match) {
+          lineText = lineText.substring(match[0].length);
+          isListItem = true;
+          bulletOffset = 20;
+        }
+      }
+
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(10.5);
+
+      if (isListItem) {
+        // Draw bullet or number
+        const isBullet = lines[i].trim().startsWith('- ') || lines[i].trim().startsWith('* ');
+        const bullet = isBullet ? '•' : (lines[i].trim().match(/^(\d+\.)/)?.[0] || '•');
+        
+        if (y + lineHeight > pageHeight - marginY) {
+          doc.addPage();
+          y = marginY;
+        }
+        
+        doc.setFont('Helvetica', 'bold');
+        doc.text(bullet, marginX, y);
+        doc.setFont('Helvetica', 'normal');
+        
+        const splitLines = doc.splitTextToSize(lineText, contentWidth - bulletOffset);
+        for (let j = 0; j < splitLines.length; j++) {
+          if (y + lineHeight > pageHeight - marginY) {
+            doc.addPage();
+            y = marginY;
+          }
+          doc.text(splitLines[j], marginX + bulletOffset, y);
+          y += lineHeight;
+        }
+      } else {
+        // Normal paragraph
+        const splitLines = doc.splitTextToSize(lineText, contentWidth);
+        for (const line of splitLines) {
+          if (y + lineHeight > pageHeight - marginY) {
+            doc.addPage();
+            y = marginY;
+          }
+          doc.text(line, marginX, y);
+          y += lineHeight;
+        }
+      }
+    }
+
+    const fileTitle = title ? title.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'meeting';
+    doc.save(`${fileTitle}_minutes.pdf`);
+  };
+
+  // Custom components for Markdown Renderer to make it look premium
+  const markdownComponents = {
+    h1: ({ children }: any) => (
+      <h1 className="text-2xl md:text-3xl font-extrabold text-zinc-100 border-b border-zinc-800 pb-3 mb-6 font-sans">
+        {children}
+      </h1>
+    ),
+    h2: ({ children }: any) => (
+      <h2 className="text-lg md:text-xl font-bold text-indigo-400 mt-8 mb-4 tracking-wide uppercase border-b border-zinc-800/40 pb-1 font-sans">
+        {children}
+      </h2>
+    ),
+    h3: ({ children }: any) => (
+      <h3 className="text-base md:text-lg font-semibold text-emerald-400 mt-6 mb-3 font-sans">
+        {children}
+      </h3>
+    ),
+    p: ({ children }: any) => (
+      <p className="text-zinc-300 leading-relaxed mb-4 text-sm md:text-base font-sans">
+        {children}
+      </p>
+    ),
+    ul: ({ children }: any) => (
+      <ul className="list-disc pl-6 mb-5 space-y-2 text-zinc-300 text-sm md:text-base font-sans">
+        {children}
+      </ul>
+    ),
+    ol: ({ children }: any) => (
+      <ol className="list-decimal pl-6 mb-5 space-y-2 text-zinc-300 text-sm md:text-base font-sans">
+        {children}
+      </ol>
+    ),
+    li: ({ children }: any) => (
+      <li className="text-zinc-300 leading-relaxed">
+        {children}
+      </li>
+    ),
+    blockquote: ({ children }: any) => (
+      <blockquote className="border-l-4 border-indigo-500 pl-4 italic text-zinc-400 my-5 bg-zinc-900/40 py-2 rounded-r-md">
+        {children}
+      </blockquote>
+    ),
+    strong: ({ children }: any) => (
+      <strong className="font-semibold text-zinc-100">
+        {children}
+      </strong>
+    ),
+    table: ({ children }: any) => (
+      <div className="overflow-x-auto my-6 border border-zinc-800 rounded-lg">
+        <table className="min-w-full divide-y divide-zinc-800 text-sm text-left">
+          {children}
+        </table>
+      </div>
+    ),
+    thead: ({ children }: any) => <thead className="bg-zinc-900/50 text-zinc-300 font-medium">{children}</thead>,
+    tbody: ({ children }: any) => <tbody className="divide-y divide-zinc-800 text-zinc-400">{children}</tbody>,
+    tr: ({ children }: any) => <tr className="hover:bg-zinc-900/20 transition-colors">{children}</tr>,
+    th: ({ children }: any) => <th className="px-4 py-3 font-medium">{children}</th>,
+    td: ({ children }: any) => <td className="px-4 py-3 font-mono text-xs">{children}</td>,
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-zinc-950 text-zinc-200 flex flex-col font-sans">
+      {/* Top Navigation */}
+      <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="bg-gradient-to-tr from-indigo-600 to-violet-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20">
+            <Sparkles className="h-5 w-5 text-white animate-pulse" />
+          </div>
+          <div>
+            <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+              Smart MoM Generator
+              <span className="text-xs bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-full text-indigo-400 font-medium">v1.0</span>
+            </h1>
+            <p className="text-xs text-zinc-500">AI-Powered Minutes of the Meeting Workspace</p>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="flex items-center gap-2">
+          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></div>
+          <span className="text-xs text-zinc-400 font-medium">Gemini Pro Connected</span>
         </div>
+      </header>
+
+      {/* Main Container: Full-Height Flex Split Screen */}
+      <main className="flex-1 flex flex-col md:flex-row h-[calc(100vh-73px)] overflow-hidden">
+        
+        {/* Left Panel: Inputs (Scrollable) */}
+        <section className="w-full md:w-1/2 h-full overflow-y-auto p-6 md:p-8 space-y-8 border-r border-zinc-900 bg-zinc-950">
+          
+          {/* Metadata Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 border-b border-zinc-900 pb-2">
+              <Layers className="h-4 w-4 text-indigo-400" />
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">1. Meeting Metadata</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-title">
+                  <FileText className="h-3 w-3" /> Meeting Title
+                </label>
+                <input
+                  id="meeting-title"
+                  type="text"
+                  placeholder="e.g., Q3 Planning & Budget Review"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-date">
+                  <Calendar className="h-3 w-3" /> Date & Time
+                </label>
+                <input
+                  id="meeting-date"
+                  type="text"
+                  placeholder="e.g., July 8, 2026 at 2:00 PM"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-chair">
+                  <User className="h-3 w-3" /> Chairperson
+                </label>
+                <input
+                  id="meeting-chair"
+                  type="text"
+                  placeholder="e.g., Clara Oswald (CEO)"
+                  value={chair}
+                  onChange={(e) => setChair(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-secretary">
+                  <Users className="h-3 w-3" /> Secretary / Note Taker
+                </label>
+                <input
+                  id="meeting-secretary"
+                  type="text"
+                  placeholder="e.g., John Smith"
+                  value={secretary}
+                  onChange={(e) => setSecretary(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Test Samples */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
+              <div className="flex items-center gap-2">
+                <FileCheck className="h-4 w-4 text-indigo-400" />
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">2. Quick Test Samples</h2>
+              </div>
+              <span className="text-xxs px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 font-mono">Workspace Files</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {sampleFiles.map((sample, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => handleLoadSample(sample.fileName)}
+                  className="flex flex-col text-left p-3 rounded-lg border border-zinc-900 bg-zinc-950 hover:bg-zinc-900 hover:border-zinc-800 active:scale-98 transition text-xs group"
+                >
+                  <span className="font-semibold text-zinc-300 group-hover:text-indigo-400 transition mb-1 flex items-center justify-between w-full">
+                    {sample.displayName}
+                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-4px] group-hover:translate-x-0" />
+                  </span>
+                  <span className="text-xxs text-zinc-500 leading-normal">{sample.description}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Raw Notes Upload & Text Area */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
+              <div className="flex items-center gap-2">
+                <Upload className="h-4 w-4 text-indigo-400" />
+                <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">3. Document Upload / Notes Input</h2>
+              </div>
+              <div className="text-xs text-zinc-500 font-medium">
+                {rawNotes ? `${rawNotes.split(/\s+/).filter(Boolean).length} words` : 'Empty'}
+              </div>
+            </div>
+
+            {/* Drag & Drop File Zone */}
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current?.click()}
+              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center min-h-[120px] ${
+                isDragActive 
+                  ? 'border-indigo-500 bg-indigo-950/20' 
+                  : uploadedFile 
+                    ? 'border-emerald-800/80 bg-emerald-950/5' 
+                    : 'border-zinc-800 hover:border-zinc-700 bg-zinc-900/10'
+              }`}
+            >
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".docx"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+
+              {uploading ? (
+                <div className="flex flex-col items-center gap-2 text-zinc-400">
+                  <RefreshCw className="h-8 w-8 text-indigo-500 animate-spin" />
+                  <span className="text-sm font-semibold">Reading document content...</span>
+                </div>
+              ) : uploadedFile ? (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="bg-emerald-500/10 p-2.5 rounded-full border border-emerald-500/20 text-emerald-400 mb-1">
+                    <FileCheck className="h-6 w-6" />
+                  </div>
+                  <span className="text-sm font-semibold text-zinc-200">{uploadedFile.name}</span>
+                  {uploadedFile.size > 0 && (
+                    <span className="text-xs text-zinc-500">Size: {Math.round(uploadedFile.size / 1024)} KB</span>
+                  )}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clearFile();
+                    }}
+                    className="mt-3 px-3 py-1 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs text-zinc-400 flex items-center gap-1.5 transition active:scale-95"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-zinc-500" /> Clear File
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <div className="bg-zinc-900 p-2.5 rounded-full border border-zinc-800 text-zinc-400 mb-1">
+                    <Upload className="h-6 w-6" />
+                  </div>
+                  <span className="text-sm font-semibold text-zinc-200">Drag & drop your .docx file here</span>
+                  <span className="text-xs text-zinc-500">or click to browse from local drive</span>
+                </div>
+              )}
+            </div>
+
+            {/* Raw Notes Area */}
+            <div className="space-y-1">
+              <label htmlFor="raw-notes-input" className="text-xs font-semibold text-zinc-400">Raw Unstructured Notes</label>
+              <textarea
+                id="raw-notes-input"
+                placeholder="Paste or type unorganized notes, transcripts, agenda topics, and raw details here..."
+                value={rawNotes}
+                onChange={(e) => setRawNotes(e.target.value)}
+                className="w-full h-64 p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-zinc-200 font-sans focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition resize-y placeholder-zinc-600"
+              />
+            </div>
+          </div>
+
+          {/* Feedback Messages */}
+          {error && (
+            <div className="p-3 bg-red-950/30 border border-red-900/50 text-red-400 rounded-lg text-xs flex items-start gap-2.5">
+              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {success && (
+            <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 text-emerald-400 rounded-lg text-xs flex items-start gap-2.5 animate-fade-in">
+              <Check className="h-4 w-4 shrink-0 mt-0.5" />
+              <span>{success}</span>
+            </div>
+          )}
+
+          {/* Generate Button */}
+          <button
+            onClick={handleGenerateMinutes}
+            disabled={isLoading || !rawNotes.trim()}
+            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold hover:from-indigo-500 hover:to-violet-500 disabled:from-zinc-900 disabled:to-zinc-900 disabled:text-zinc-600 disabled:border disabled:border-zinc-800 disabled:cursor-not-allowed transition duration-200 active:scale-99 shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 flex items-center justify-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <RefreshCw className="h-4 w-4 animate-spin text-white" />
+                <span>AI Secretary is writing minutes...</span>
+              </>
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4 text-white" />
+                <span>Generate structured MoM</span>
+              </>
+            )}
+          </button>
+        </section>
+
+        {/* Right Panel: Live Preview & Export */}
+        <section className="w-full md:w-1/2 h-full flex flex-col bg-zinc-900/40 relative">
+          
+          {/* Header toolbar */}
+          <div className="border-b border-zinc-900 px-6 py-4 flex flex-wrap items-center justify-between gap-3 bg-zinc-950/30">
+            {/* View Switcher Tabs */}
+            <div className="flex bg-zinc-950 p-1 rounded-lg border border-zinc-900">
+              <button
+                onClick={() => setActiveTab('preview')}
+                disabled={!minutes}
+                className={`px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition ${
+                  activeTab === 'preview' 
+                    ? 'bg-zinc-900 text-white shadow-sm' 
+                    : 'text-zinc-500 hover:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed'
+                }`}
+              >
+                <Eye className="h-3.5 w-3.5" /> Formatted Minutes
+              </button>
+              <button
+                onClick={() => setActiveTab('edit')}
+                disabled={!minutes}
+                className={`px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition ${
+                  activeTab === 'edit' 
+                    ? 'bg-zinc-900 text-white shadow-sm' 
+                    : 'text-zinc-500 hover:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed'
+                }`}
+              >
+                <Edit3 className="h-3.5 w-3.5" /> Edit Markdown
+              </button>
+            </div>
+
+            {/* Export options */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={copyToClipboard}
+                disabled={!minutes}
+                title="Copy markdown to clipboard"
+                className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
+              >
+                {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                <span>Copy</span>
+              </button>
+              <button
+                onClick={downloadMarkdown}
+                disabled={!minutes}
+                title="Download as Markdown (.md)"
+                className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
+              >
+                <Download className="h-4 w-4" />
+                <span>MD</span>
+              </button>
+              <button
+                onClick={downloadPDF}
+                disabled={!minutes}
+                title="Download formatted PDF"
+                className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
+              >
+                <FileText className="h-4 w-4" />
+                <span>PDF</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Preview/Edit Content Area */}
+          <div className="flex-1 overflow-y-auto p-6 md:p-8">
+            {isLoading ? (
+              // Pulse Skeleton Screen
+              <div className="space-y-6 animate-pulse">
+                <div className="h-8 bg-zinc-800 rounded-md w-3/4"></div>
+                <div className="h-4 bg-zinc-850 rounded-md w-1/3 mt-2"></div>
+                <hr className="border-zinc-800 my-6" />
+                <div className="space-y-4">
+                  <div className="h-4 bg-zinc-800 rounded-md w-1/4"></div>
+                  <div className="space-y-2 pl-4">
+                    <div className="h-3.5 bg-zinc-850 rounded-md w-5/6"></div>
+                    <div className="h-3.5 bg-zinc-850 rounded-md w-4/6"></div>
+                  </div>
+                </div>
+                <div className="space-y-4 mt-8">
+                  <div className="h-4 bg-zinc-800 rounded-md w-1/3"></div>
+                  <div className="space-y-2 pl-4">
+                    <div className="h-3.5 bg-zinc-850 rounded-md w-full"></div>
+                    <div className="h-3.5 bg-zinc-850 rounded-md w-11/12"></div>
+                    <div className="h-3.5 bg-zinc-850 rounded-md w-4/5"></div>
+                  </div>
+                </div>
+                <div className="space-y-4 mt-8">
+                  <div className="h-4 bg-zinc-800 rounded-md w-1/4"></div>
+                  <div className="space-y-2 pl-4">
+                    <div className="h-3.5 bg-zinc-850 rounded-md w-2/3"></div>
+                  </div>
+                </div>
+              </div>
+            ) : minutes ? (
+              activeTab === 'preview' ? (
+                // Styled Markdown Viewer
+                <div className="prose prose-invert max-w-none prose-zinc pb-12 selection:bg-indigo-500/30">
+                  <ReactMarkdown components={markdownComponents}>
+                    {minutes}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                // Raw Markdown Editor
+                <div className="h-full flex flex-col">
+                  <textarea
+                    value={minutes}
+                    onChange={(e) => setMinutes(e.target.value)}
+                    className="w-full flex-1 min-h-[400px] p-6 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-zinc-300 font-mono focus:outline-none focus:border-indigo-500 transition resize-none leading-relaxed"
+                  />
+                  <p className="text-xxs text-zinc-500 mt-2 font-mono">
+                    Note: Editing here updates the active preview state. Downloading or copying will export these current changes.
+                  </p>
+                </div>
+              )
+            ) : (
+              // Empty State Placeholder
+              <div className="h-full flex flex-col items-center justify-center text-center p-6">
+                <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-2xl mb-4 relative shadow-lg group hover:border-zinc-800 transition">
+                  <div className="absolute -inset-0.5 bg-gradient-to-tr from-indigo-500 to-violet-500 rounded-2xl opacity-10 blur group-hover:opacity-20 transition duration-300"></div>
+                  <FileText className="h-10 w-10 text-zinc-500 group-hover:text-indigo-400 transition" />
+                </div>
+                <h3 className="text-base font-semibold text-zinc-300">No Minutes Generated Yet</h3>
+                <p className="text-xs text-zinc-500 max-w-sm mt-2 leading-relaxed">
+                  Provide meeting notes on the left panel or click one of the quick test sample buttons to generate your structured meeting minutes.
+                </p>
+
+                <div className="mt-8 grid grid-cols-1 gap-3 max-w-xs text-left w-full">
+                  <div className="flex items-center gap-3 text-xs text-zinc-400">
+                    <span className="h-5 w-5 rounded-full bg-zinc-950 border border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">1</span>
+                    <span>Fill meeting metadata</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-zinc-400">
+                    <span className="h-5 w-5 rounded-full bg-zinc-950 border border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">2</span>
+                    <span>Upload .docx file or write raw notes</span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-zinc-400">
+                    <span className="h-5 w-5 rounded-full bg-zinc-950 border border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">3</span>
+                    <span>Click "Generate structured MoM"</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
       </main>
     </div>
   );
