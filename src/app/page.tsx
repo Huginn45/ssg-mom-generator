@@ -61,6 +61,26 @@ export default function Home() {
       displayName: "1st Regular Meeting",
       fileName: "MINUTES OF THE 1st EARLY REGULAR MEETING ON THURSDAY, JANUARY 08, 2026..docx",
       description: "Large organization notes with detailed items and discussion."
+    },
+    {
+      displayName: "SSG Altered Minutes",
+      fileName: "SSG-Meeting-Minutes-Altered_forOrgPresidents (1).docx",
+      description: "SSG meeting notes altered for organization presidents."
+    },
+    {
+      displayName: "SSG August 19 Meeting",
+      fileName: "SSG-Meeting-Minutes-August19.docx",
+      description: "SSG regular meeting notes for August 19."
+    },
+    {
+      displayName: "SSG August 22 Meeting",
+      fileName: "SSG-Meeting-Minutes-August22 (1).docx",
+      description: "SSG regular meeting notes for August 22."
+    },
+    {
+      displayName: "SSG July 6 Copy",
+      fileName: "SSG-Meeting-Minutes-July6 (1).docx",
+      description: "Additional copy of July 6 SSG minutes for testing."
     }
   ];
 

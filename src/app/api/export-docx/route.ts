@@ -206,7 +206,7 @@ export async function POST(request: Request) {
             new TableRow({
               children: [
                 new TableCell({
-                  width: { size: 40, type: WidthType.PERCENTAGE },
+                  width: { size: 3500, type: WidthType.DXA },
                   borders: {
                     top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
                     bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
@@ -227,7 +227,7 @@ export async function POST(request: Request) {
                   ],
                 }),
                 new TableCell({
-                  width: { size: 10, type: WidthType.PERCENTAGE },
+                  width: { size: 400, type: WidthType.DXA },
                   borders: {
                     top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
                     bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
@@ -249,7 +249,7 @@ export async function POST(request: Request) {
                   ],
                 }),
                 new TableCell({
-                  width: { size: 50, type: WidthType.PERCENTAGE },
+                  width: { size: 6180, type: WidthType.DXA },
                   borders: {
                     top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
                     bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
@@ -317,7 +317,7 @@ export async function POST(request: Request) {
               new TableRow({
                 children: [
                   new TableCell({
-                    width: { size: 50, type: WidthType.PERCENTAGE },
+                    width: { size: 4500, type: WidthType.DXA },
                     borders: {
                       top: { style: BorderStyle.SINGLE, size: 6, color: '7A7A7A' }, // Sig line
                     },
@@ -347,11 +347,11 @@ export async function POST(request: Request) {
                   }),
                   // Invisible Spacer cell
                   new TableCell({
-                    width: { size: 10, type: WidthType.PERCENTAGE },
+                    width: { size: 1080, type: WidthType.DXA },
                     children: [new Paragraph({})],
                   }),
                   new TableCell({
-                    width: { size: 40, type: WidthType.PERCENTAGE },
+                    width: { size: 4500, type: WidthType.DXA },
                     borders: {
                       top: { style: BorderStyle.SINGLE, size: 6, color: '7A7A7A' }, // Sig line
                     },
