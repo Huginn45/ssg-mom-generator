@@ -262,44 +262,237 @@ export default function Home() {
     document.body.removeChild(link);
   };
 
-  // Download minutes as Word Document (.docx) via server-side generation
-  const downloadDOCX = async () => {
+  // Direct the formatted minutes to Google Docs via clipboard Rich Text and docs.new
+  const directToGoogleDocs = async () => {
     if (!minutes) return;
     setError('');
     setSuccess('');
     
     try {
-      const response = await fetch('/api/export-docx', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          minutes,
-          title,
-          date,
-          chair,
-          secretary,
-        }),
-      });
+      // Split markdown by lines to build structured HTML styling
+      const lines = minutes.split('\n');
+      let html = '<div style="font-family: Arial, sans-serif; font-size: 10.5pt; color: #333333; line-height: 1.4; max-width: 6.5in; margin: 0.75in;">';
+      
+      let inRollCall = false;
+      let inDiscussion = false;
+      let rollCallSectionName = '';
+      let rollCallMembers: { role: string; name: string }[] = [];
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Failed to export Word document');
+      const flushRollCall = () => {
+        if (rollCallMembers.length > 0) {
+          html += `<p style="font-family: Arial; font-size: 9.5pt; font-weight: bold; margin-top: 12px; margin-bottom: 4px; text-transform: uppercase;">${rollCallSectionName}</p>`;
+          html += '<table style="width: 100%; border-collapse: collapse; border: none; margin-bottom: 12px;">';
+          for (const m of rollCallMembers) {
+            html += `<tr style="border: none;">`;
+            html += `<td style="width: 40%; border: none; padding: 2px 0; font-family: Arial; font-size: 9.5pt;">${m.role}</td>`;
+            html += `<td style="width: 10%; border: none; padding: 2px 0; font-family: Arial; font-size: 9.5pt; text-align: center;">-</td>`;
+            html += `<td style="width: 50%; border: none; padding: 2px 0; font-family: Arial; font-size: 9.5pt;">${m.name}</td>`;
+            html += `</tr>`;
+          }
+          html += '</table>';
+          rollCallMembers = [];
+        }
+      };
+
+      for (let i = 0; i < lines.length; i++) {
+        const rawLine = lines[i];
+        let lineText = rawLine.trim();
+
+        if (lineText === '') {
+          html += '<p style="margin: 0; height: 10px;"></p>';
+          continue;
+        }
+
+        const isOriginalBold = (lineText.startsWith('**') && lineText.endsWith('**')) ||
+                               (lineText.startsWith('__') && lineText.endsWith('__'));
+        
+        let cleanLine = lineText.replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '').trim();
+
+        // Safe ASCII conversions
+        cleanLine = cleanLine
+          .replace(/[\u201c\u201d]/g, '"')
+          .replace(/[\u2018\u2019]/g, "'")
+          .replace(/[\u2013\u2014]/g, '-')
+          .replace(/[\u2022]/g, '-')
+          .replace(/[\u2026]/g, '...');
+
+        // Section tracking based on Roman numerals
+        const lowerClean = cleanLine.toLowerCase();
+        if (lowerClean.includes('i. call to order')) {
+          flushRollCall();
+          inRollCall = false;
+          inDiscussion = false;
+        } else if (lowerClean.includes('iii. roll call') || lowerClean.includes('attendance')) {
+          inRollCall = true;
+          inDiscussion = false;
+        } else if (lowerClean.includes('v. discussion')) {
+          flushRollCall();
+          inDiscussion = true;
+          inRollCall = false;
+        } else if (lowerClean.includes('vi. adjournment') || lowerClean.includes('sign-off') || lowerClean.includes('certify')) {
+          flushRollCall();
+          inDiscussion = false;
+          inRollCall = false;
+        }
+
+        // Heading 1 (# ) -> Left aligned uppercase bold 11pt
+        if (lineText.startsWith('# ') || (i === 0 && !lineText.startsWith('#') && cleanLine.toUpperCase() === cleanLine)) {
+          const titleText = lineText.startsWith('# ') ? lineText.replace('# ', '').trim() : cleanLine;
+          html += `<h1 style="font-family: Arial; font-size: 11pt; font-weight: bold; margin-top: 20px; margin-bottom: 12px; text-transform: uppercase;">${titleText}</h1>`;
+          continue;
+        }
+
+        // Heading 2 (## Roman numerals) -> Uppercase bold 10.5pt
+        const isHeading2 = lineText.startsWith('## ') || 
+                           /^(I|II|III|IV|V|VI)\.\s+[A-Z\s]+/.test(cleanLine);
+        if (isHeading2) {
+          flushRollCall();
+          let headingText = cleanLine;
+          if (lineText.startsWith('## ')) {
+            headingText = cleanLine.replace(/^##\s+/, '').trim();
+          }
+          html += `<h2 style="font-family: Arial; font-size: 10.5pt; font-weight: bold; margin-top: 18px; margin-bottom: 8px; text-transform: uppercase;">${headingText}</h2>`;
+          continue;
+        }
+
+        // Subheading (### or bold numbered topics) -> Bold 10pt
+        const isSubHeading = lineText.startsWith('### ') || 
+                             (/^\d+\.\s+/.test(cleanLine) && isOriginalBold) ||
+                             (/^\d+\.\s+/.test(cleanLine) && inDiscussion);
+        if (isSubHeading) {
+          let headingText = cleanLine;
+          if (lineText.startsWith('### ')) {
+            headingText = cleanLine.replace(/^###\s+/, '').trim();
+          }
+          html += `<h3 style="font-family: Arial; font-size: 10pt; font-weight: bold; margin-top: 12px; margin-bottom: 6px;">${headingText}</h3>`;
+          continue;
+        }
+
+        // Roll Call section headers
+        if (inRollCall && (cleanLine === 'PRESENT:' || cleanLine === 'EXCUSED:' || cleanLine === 'ABSENT:')) {
+          flushRollCall();
+          rollCallSectionName = cleanLine;
+          continue;
+        }
+
+        // Roll Call attendees split Designation - Name
+        if (inRollCall && (cleanLine.includes(' - ') || cleanLine.includes(' – '))) {
+          const divider = cleanLine.includes(' - ') ? ' - ' : ' – ';
+          const parts = cleanLine.split(divider);
+          if (parts.length >= 2) {
+            rollCallMembers.push({
+              role: parts[0].trim(),
+              name: parts[1].trim(),
+            });
+            continue;
+          }
+        }
+
+        // Sign-off / Certification
+        if (cleanLine.toLowerCase().includes('i hereby certify')) {
+          flushRollCall();
+          html += `<p style="font-family: Arial; font-size: 9.5pt; font-style: italic; margin-top: 24px; margin-bottom: 48px; line-height: 1.4;">${cleanLine}</p>`;
+          
+          const secName = secretary || 'JANQUEL B. GEAGONIA';
+          const chairName = chair || 'KATHLYN BACLAYON';
+          
+          // Signatures side-by-side table
+          html += `<table style="width: 100%; border-collapse: collapse; border: none; margin-top: 20px;">`;
+          html += `<tr style="border: none;">`;
+          
+          // Prepared by
+          html += `<td style="width: 45%; border: none; border-top: 1px solid #7A7A7A; padding-top: 8px; font-family: Arial; vertical-align: top;">`;
+          html += `<p style="font-size: 9pt; font-weight: bold; margin: 0; text-transform: uppercase;">${secName}</p>`;
+          html += `<p style="font-size: 8pt; color: #6E6E6E; margin: 2px 0 0 0;">Prepared by: Executive Secretary</p>`;
+          html += `</td>`;
+          
+          // Spacer
+          html += `<td style="width: 10%; border: none;"></td>`;
+          
+          // Attested by
+          html += `<td style="width: 45%; border: none; border-top: 1px solid #7A7A7A; padding-top: 8px; font-family: Arial; vertical-align: top;">`;
+          html += `<p style="font-size: 9pt; font-weight: bold; margin: 0; text-transform: uppercase;">${chairName}</p>`;
+          html += `<p style="font-size: 8pt; color: #6E6E6E; margin: 2px 0 0 0;">Attested By: President / Chairperson</p>`;
+          html += `</td>`;
+          
+          html += `</tr>`;
+          html += `</table>`;
+          break; // Cert ends the document loop
+        }
+
+        // Standard lists and bullets
+        const rawLeading = rawLine.match(/^\s*/)?.[0] || '';
+        const isIndented = rawLeading.length > 0 || rawLine.startsWith('\t');
+        
+        let isListItem = false;
+        let cleanedItemText = cleanLine;
+
+        if (cleanLine.startsWith('- ') || cleanLine.startsWith('* ') || cleanLine.startsWith('• ')) {
+          cleanedItemText = cleanLine.replace(/^([\-\*•]\s+)/, '').trim();
+          isListItem = true;
+        } else if (cleanLine.startsWith('o ')) {
+          cleanedItemText = cleanLine.replace(/^(o\s+)/, '').trim();
+          isListItem = true;
+        } else if (/^\d+\.\s+/.test(cleanLine)) {
+          const match = cleanLine.match(/^(\d+\.\s+)/);
+          if (match) {
+            cleanedItemText = cleanLine.substring(match[0].length).trim();
+            isListItem = true;
+          }
+        }
+
+        if (isListItem) {
+          flushRollCall();
+          let bulletChar = '•';
+          let indentPixels = 20;
+
+          if (isIndented) {
+            indentPixels = 40;
+            if (inDiscussion) {
+              bulletChar = 'o';
+            } else {
+              bulletChar = '-';
+            }
+          } else {
+            const rawTrim = lines[i].trim();
+            if (!rawTrim.startsWith('- ') && !rawTrim.startsWith('* ') && !rawTrim.startsWith('• ')) {
+              const matchNumber = rawTrim.match(/^(\d+\.)/);
+              if (matchNumber) {
+                bulletChar = matchNumber[0];
+                indentPixels = 25;
+              }
+            }
+          }
+
+          html += `<p style="font-family: Arial; font-size: 9.5pt; margin: 3px 0 3px ${indentPixels}px; padding: 0; line-height: 1.4;">`;
+          html += `<span style="font-weight: bold; margin-right: 8px;">${bulletChar}</span>`;
+          html += `<span>${cleanedItemText}</span>`;
+          html += `</p>`;
+        } else {
+          // Standard text paragraph
+          flushRollCall();
+          const weightStyle = isOriginalBold ? 'font-weight: bold;' : '';
+          html += `<p style="font-family: Arial; font-size: 9.5pt; ${weightStyle} margin-top: 6px; margin-bottom: 6px; line-height: 1.4;">${cleanLine}</p>`;
+        }
       }
 
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      const fileTitle = title ? title.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'meeting';
-      link.href = url;
-      link.setAttribute('download', `${fileTitle}_minutes.docx`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      setSuccess('Successfully exported Word document!');
+      flushRollCall();
+      html += '</div>';
+
+      // Write HTML format directly to the clipboard
+      const blob = new Blob([html], { type: 'text/html' });
+      const richText = new ClipboardItem({ 'text/html': blob });
+      await navigator.clipboard.write([richText]);
+
+      setSuccess('Formatted minutes copied to clipboard as Rich Text! Redirecting to Google Docs...');
+      
+      // Open blank Google doc in a new tab
+      setTimeout(() => {
+        window.open('https://docs.new', '_blank');
+      }, 1200);
+      
     } catch (err: any) {
-      setError(err.message || 'Failed to export Word document');
+      setError(err.message || 'Failed to direct to Google Docs');
     }
   };
 
@@ -1014,13 +1207,13 @@ export default function Home() {
                 <span>Copy</span>
               </button>
               <button
-                onClick={downloadDOCX}
+                onClick={directToGoogleDocs}
                 disabled={!minutes}
-                title="Download as Word Document (.docx)"
+                title="Export directly to Google Docs (copies formatted text and opens docs.new)"
                 className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold text-indigo-400 border-indigo-950 hover:bg-indigo-950/20"
               >
                 <FileText className="h-4 w-4 text-indigo-400" />
-                <span>Word</span>
+                <span>Docs</span>
               </button>
               <button
                 onClick={downloadMarkdown}
