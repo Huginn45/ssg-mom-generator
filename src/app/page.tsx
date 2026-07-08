@@ -1064,6 +1064,163 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-200 flex flex-col font-sans">
+      
+      {/* Settings Modal Dialog for GDocs */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-2xl space-y-6">
+            <button
+              onClick={() => setIsSettingsOpen(false)}
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 transition"
+            >
+              <X className="h-5 w-5" />
+            </button>
+
+            <div className="space-y-1">
+              <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+                <Settings className="h-5 w-5 text-indigo-400" />
+                Google Docs Integration Settings
+              </h2>
+              <p className="text-xs text-zinc-400">
+                To automate document creation (opening Docs with the minutes content pre-populated), configure either Method A or Method B below.
+              </p>
+            </div>
+
+            <div className="space-y-6 divide-y divide-zinc-900">
+              {/* Method A */}
+              <div className="space-y-3 pt-1">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-indigo-400">Method A: Google Apps Script (Recommended - No Cloud Setup)</h3>
+                  <span className="text-xxs px-2 py-0.5 rounded bg-indigo-950/50 text-indigo-300 border border-indigo-900/50 font-mono">Zero Config</span>
+                </div>
+                <p className="text-xs text-zinc-400 leading-normal">
+                  Creates documents directly in your Google Drive using a simple Apps Script. No Google Cloud APIs or console setup required.
+                </p>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-zinc-400 font-medium">Google Apps Script Web App URL</label>
+                  <input
+                    type="text"
+                    value={tempScriptUrl}
+                    onChange={(e) => setTempScriptUrl(e.target.value)}
+                    placeholder="https://script.google.com/macros/s/..."
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition"
+                  />
+                </div>
+
+                {/* Steps Accordion */}
+                <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-900 space-y-3 text-xs">
+                  <span className="font-semibold text-zinc-300">Quick 3-Minute Setup Instructions:</span>
+                  <ol className="list-decimal pl-4 space-y-2 text-zinc-400">
+                    <li>Go to <a href="https://script.google.com" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">script.google.com</a> and click <strong>New Project</strong>.</li>
+                    <li>
+                      Replace the entire script with this code:
+                      <div className="relative mt-1.5">
+                        <textarea
+                          readOnly
+                          rows={6}
+                          value={`function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    var title = data.title || "Minutes";
+    var html = data.html;
+    var metadata = { name: title, mimeType: "application/vnd.google-apps.document" };
+    var boundary = "xxxxxxxxxx";
+    var requestBody = "--" + boundary + "\\r\\n" +
+      "Content-Type: application/json; charset=UTF-8\\r\\n\\r\\n" +
+      JSON.stringify(metadata) + "\\r\\n" +
+      "--" + boundary + "\\r\\n" +
+      "Content-Type: text/html; charset=UTF-8\\r\\n\\r\\n" +
+      html + "\\r\\n" +
+      "--" + boundary + "--";
+    var options = {
+      method: "post",
+      contentType: "multipart/related; boundary=" + boundary,
+      headers: { Authorization: "Bearer " + ScriptApp.getOAuthToken() },
+      payload: requestBody,
+      muteHttpExceptions: true
+    };
+    var response = UrlFetchApp.fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", options);
+    var resData = JSON.parse(response.getContentText());
+    if (resData.id) {
+      return ContentService.createTextOutput(JSON.stringify({ url: "https://docs.google.com/document/d/" + resData.id + "/edit" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    return ContentService.createTextOutput(JSON.stringify({ error: resData })).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({ error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+  }
+}`}
+                          className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded font-mono text-[10px] text-zinc-300 focus:outline-none"
+                        />
+                      </div>
+                    </li>
+                    <li>Click <strong>Deploy &gt; New deployment</strong>. Select <strong>Web app</strong> as type. Set <em>Execute as:</em> <strong>Me</strong> and <em>Who has access:</em> <strong>Anyone</strong>.</li>
+                    <li>Click Deploy, authorize permissions, copy the <strong>Web App URL</strong> and paste it above!</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* Method B */}
+              <div className="space-y-3 pt-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-indigo-400">Method B: Google Drive API (OAuth Consent Screen)</h3>
+                  <span className="text-xxs px-2 py-0.5 rounded bg-zinc-900 text-zinc-500 border border-zinc-850 font-mono">Standard OAuth</span>
+                </div>
+                <p className="text-xs text-zinc-400 leading-normal">
+                  Authorizes credentials natively in the browser. Requires creating a Google Cloud OAuth Client ID with Authorized JavaScript Origins set to <code>http://localhost:3000</code>.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-zinc-400 font-medium">Google Client ID</label>
+                    <input
+                      type="text"
+                      value={tempClientId}
+                      onChange={(e) => setTempClientId(e.target.value)}
+                      placeholder="e.g. 12345-abcde.apps.googleusercontent.com"
+                      className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition"
+                    />
+                  </div>
+                  <div className="space-y-1.5 flex flex-col justify-end">
+                    {accessToken ? (
+                      <div className="px-3 py-2 rounded-lg border border-emerald-900 bg-emerald-950/20 text-emerald-400 text-xs flex items-center justify-between">
+                        <span>Signed in to Google</span>
+                        <Check className="h-4 w-4" />
+                      </div>
+                    ) : (
+                      <button
+                        onClick={handleGoogleSignIn}
+                        disabled={!tempClientId}
+                        className="w-full py-2 px-3 rounded-lg border border-zinc-800 hover:border-zinc-700 bg-zinc-900 text-xs font-semibold text-zinc-200 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-2"
+                      >
+                        <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                        <span>Sign in with Google</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-end gap-3 border-t border-zinc-900 pt-4">
+              <button
+                onClick={() => setIsSettingsOpen(false)}
+                className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-850 hover:bg-zinc-850 text-xs font-semibold text-zinc-400 transition"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveSettings}
+                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-semibold text-white shadow-lg shadow-indigo-600/10 transition"
+              >
+                Save Integration Settings
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
+
       {/* Top Navigation */}
       <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
