@@ -242,7 +242,7 @@ export default function Home() {
     document.body.removeChild(link);
   };
 
-  // Download PDF using our high-fidelity text-wrapping renderer
+  // Download PDF using our high-fidelity text-wrapping renderer matching SSG standard
   const downloadPDF = () => {
     if (!minutes) return;
     
@@ -261,20 +261,22 @@ export default function Home() {
     let y = marginY;
     const lineHeight = 16;
     const headingHeight = 22;
-    const titleHeight = 28;
+    const titleHeight = 26;
 
     // Set initial font
     doc.setFont('Helvetica', 'normal');
+    doc.setTextColor(30, 30, 30); // Soft professional black/dark gray
 
     // Split markdown by lines
     const lines = minutes.split('\n');
+    let inRollCall = false;
 
     for (let i = 0; i < lines.length; i++) {
       let lineText = lines[i].trim();
       
       // Skip empty lines, just add vertical spacing
       if (lineText === '') {
-        y += 10;
+        y += 8;
         if (y > pageHeight - marginY) {
           doc.addPage();
           y = marginY;
@@ -282,22 +284,35 @@ export default function Home() {
         continue;
       }
 
-      // Check heading 1 (# )
+      // Check section headers to manage inRollCall state
+      if (lineText.startsWith('## ')) {
+        const lowerLine = lineText.toLowerCase();
+        if (lowerLine.includes('roll call') || lowerLine.includes('attendance')) {
+          inRollCall = true;
+        } else {
+          inRollCall = false;
+        }
+      }
+
+      // Check heading 1 (# ) -> Center and Uppercase like SSG
       if (lineText.startsWith('# ')) {
         const heading = lineText.replace('# ', '').trim();
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(16);
+        doc.setFontSize(14);
         
-        const splitLines = doc.splitTextToSize(heading, contentWidth);
+        const splitLines = doc.splitTextToSize(heading.toUpperCase(), contentWidth);
         for (const line of splitLines) {
           if (y + titleHeight > pageHeight - marginY) {
             doc.addPage();
             y = marginY;
           }
-          doc.text(line, marginX, y + 10);
+          const textWidth = doc.getTextWidth(line);
+          const centerX = (pageWidth - textWidth) / 2;
+          doc.text(line, centerX, y + 10);
           y += titleHeight;
         }
         doc.setFont('Helvetica', 'normal');
+        y += 12; // spacing after title
         continue;
       }
 
@@ -305,15 +320,15 @@ export default function Home() {
       if (lineText.startsWith('## ')) {
         const heading = lineText.replace('## ', '').trim();
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(12);
+        doc.setFontSize(11.5);
         
-        const splitLines = doc.splitTextToSize(heading, contentWidth);
+        const splitLines = doc.splitTextToSize(heading.toUpperCase(), contentWidth);
         for (const line of splitLines) {
           if (y + headingHeight > pageHeight - marginY) {
             doc.addPage();
             y = marginY;
           }
-          y += 10; // add space before section
+          y += 12; // add space before section
           doc.text(line, marginX, y);
           y += headingHeight;
         }
@@ -325,7 +340,7 @@ export default function Home() {
       if (lineText.startsWith('### ')) {
         const heading = lineText.replace('### ', '').trim();
         doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(11);
+        doc.setFontSize(10.5);
         
         const splitLines = doc.splitTextToSize(heading, contentWidth);
         for (const line of splitLines) {
@@ -340,7 +355,91 @@ export default function Home() {
         continue;
       }
 
-      // Check list items
+      // Check for Roll Call Attendee layout (Role - Name)
+      if (inRollCall && (lineText.includes(' - ') || lineText.includes(' – '))) {
+        const cleanLine = lineText.replace(/^[\s\-\*\d\.\s]+/, '').trim();
+        const divider = cleanLine.includes(' - ') ? ' - ' : ' – ';
+        const parts = cleanLine.split(divider);
+        if (parts.length >= 2) {
+          const role = parts[0].trim();
+          const name = parts[1].trim();
+          
+          if (y + lineHeight > pageHeight - marginY) {
+            doc.addPage();
+            y = marginY;
+          }
+          
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(9.5);
+          doc.text(role, marginX, y);
+          doc.setFont('Helvetica', 'normal');
+          doc.text(name, marginX + 160, y);
+          y += lineHeight;
+          continue;
+        }
+      }
+
+      // Check for Sign-off block trigger
+      if (lineText.toLowerCase().includes('i hereby certify')) {
+        // Prevent orphan signatures by ensuring the signature block fits
+        if (y + 130 > pageHeight - marginY) {
+          doc.addPage();
+          y = marginY;
+        }
+        
+        // Print certification text
+        doc.setFont('Helvetica', 'italic');
+        doc.setFontSize(10);
+        const splitCert = doc.splitTextToSize(lineText, contentWidth);
+        for (const line of splitCert) {
+          doc.text(line, marginX, y);
+          y += lineHeight;
+        }
+        
+        // Setup side-by-side signature block
+        y += 48; // Space to sign
+        
+        if (y + 50 > pageHeight - marginY) {
+          doc.addPage();
+          y = marginY;
+        }
+        
+        const leftLineX1 = marginX;
+        const leftLineX2 = marginX + 180;
+        const rightLineX1 = pageWidth - marginX - 180;
+        const rightLineX2 = pageWidth - marginX;
+        
+        doc.setLineWidth(0.75);
+        doc.setDrawColor(120, 120, 120);
+        
+        // Draw lines
+        doc.line(leftLineX1, y, leftLineX2, y);
+        doc.line(rightLineX1, y, rightLineX2, y);
+        
+        y += 12;
+        
+        // Print names in bold
+        doc.setFont('Helvetica', 'bold');
+        doc.setFontSize(9.5);
+        const secName = secretary || 'JANQUEL B. GEAGONIA';
+        doc.text(secName.toUpperCase(), leftLineX1, y);
+        
+        const chairName = chair || 'KATHLYN BACLAYON';
+        doc.text(chairName.toUpperCase(), rightLineX1, y);
+        
+        y += 11;
+        
+        // Print roles in normal font
+        doc.setFont('Helvetica', 'normal');
+        doc.setFontSize(8.5);
+        doc.text('Executive Secretary / Notes Taker', leftLineX1, y);
+        doc.text('Attested By: Chairperson / President', rightLineX1, y);
+        
+        // We've processed the custom signatures block, we can exit the parser loop
+        break;
+      }
+
+      // Check standard list items
       let isListItem = false;
       let bulletOffset = 0;
       if (lineText.startsWith('- ') || lineText.startsWith('* ')) {
@@ -357,10 +456,9 @@ export default function Home() {
       }
 
       doc.setFont('Helvetica', 'normal');
-      doc.setFontSize(10.5);
+      doc.setFontSize(10);
 
       if (isListItem) {
-        // Draw bullet or number
         const isBullet = lines[i].trim().startsWith('- ') || lines[i].trim().startsWith('* ');
         const bullet = isBullet ? '•' : (lines[i].trim().match(/^(\d+\.)/)?.[0] || '•');
         
@@ -394,6 +492,27 @@ export default function Home() {
           y += lineHeight;
         }
       }
+    }
+
+    // Loop through generated pages to add top header and bottom footer (page numbering)
+    const totalPages = doc.getNumberOfPages();
+    for (let j = 1; j <= totalPages; j++) {
+      doc.setPage(j);
+      doc.setFont('Helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(110, 110, 110);
+      
+      // Top header on page 2 and up
+      if (j > 1) {
+        const headerTitle = title ? title.toUpperCase() : 'MEETING MINUTES';
+        doc.text(`MINUTES OF THE MEETING - ${headerTitle}`, marginX, 35);
+        doc.setLineWidth(0.5);
+        doc.setDrawColor(220, 220, 220);
+        doc.line(marginX, 38, pageWidth - marginX, 38);
+      }
+      
+      // Bottom footer on all pages
+      doc.text(`Page ${j} of ${totalPages}`, pageWidth / 2, pageHeight - 30, { align: 'center' });
     }
 
     const fileTitle = title ? title.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'meeting';
