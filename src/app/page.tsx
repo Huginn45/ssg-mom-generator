@@ -242,6 +242,47 @@ export default function Home() {
     document.body.removeChild(link);
   };
 
+  // Download minutes as Word Document (.docx) via server-side generation
+  const downloadDOCX = async () => {
+    if (!minutes) return;
+    setError('');
+    setSuccess('');
+    
+    try {
+      const response = await fetch('/api/export-docx', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          minutes,
+          title,
+          date,
+          chair,
+          secretary,
+        }),
+      });
+
+      if (!response.ok) {
+        const errData = await response.json();
+        throw new Error(errData.error || 'Failed to export Word document');
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const fileTitle = title ? title.toLowerCase().replace(/[^a-z0-9]/g, '_') : 'meeting';
+      link.href = url;
+      link.setAttribute('download', `${fileTitle}_minutes.docx`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setSuccess('Successfully exported Word document!');
+    } catch (err: any) {
+      setError(err.message || 'Failed to export Word document');
+    }
+  };
+
   // Download PDF using our high-fidelity text-wrapping renderer matching 1st Early Regular Meeting standard
   const downloadPDF = () => {
     if (!minutes) return;
@@ -261,6 +302,17 @@ export default function Home() {
     let y = marginY;
     const lineHeight = 15;
     const headingHeight = 20;
+
+    // Helper to sanitize Unicode punctuation to safe ASCII before rendering in PDF
+    const cleanUnicodeToASCII = (text: string) => {
+      return text
+        .replace(/[\u201c\u201d]/g, '"') // Curly double quotes
+        .replace(/[\u2018\u2019]/g, "'") // Curly single quotes
+        .replace(/[\u2013\u2014]/g, '-') // en-dash/em-dash
+        .replace(/[\u2022]/g, '-')       // Unicode bullet character
+        .replace(/[\u2026]/g, '...')     // Ellipsis
+        .replace(/[^\x00-\x7F]/g, '');   // Remove any other non-ASCII characters
+    };
 
     // Set initial font
     doc.setFont('Helvetica', 'normal');
@@ -308,13 +360,13 @@ export default function Home() {
         inRollCall = false;
       }
 
-      // Check title block (first # heading) -> Left aligned, uppercase, bold, size 11, letter spacing
+      // Check title block (first # heading) -> Left aligned, uppercase, bold, size 11
       if (lineText.startsWith('# ') || (i === 0 && !lineText.startsWith('#') && cleanLine.toUpperCase() === cleanLine)) {
         const titleContent = lineText.startsWith('# ') ? lineText.replace('# ', '').trim() : cleanLine;
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(11);
         
-        const splitLines = doc.splitTextToSize(titleContent.toUpperCase(), contentWidth);
+        const splitLines = doc.splitTextToSize(cleanUnicodeToASCII(titleContent.toUpperCase()), contentWidth);
         for (const line of splitLines) {
           if (y + 16 > pageHeight - marginY) {
             doc.addPage();
@@ -346,7 +398,7 @@ export default function Home() {
         }
         
         y += 12; // spacing before heading
-        doc.text(headingText.toUpperCase(), marginX, y);
+        doc.text(cleanUnicodeToASCII(headingText.toUpperCase()), marginX, y);
         y += headingHeight;
         doc.setFont('Helvetica', 'normal');
         continue;
@@ -370,7 +422,7 @@ export default function Home() {
           y = marginY;
         }
         
-        doc.text(headingText, marginX, y);
+        doc.text(cleanUnicodeToASCII(headingText), marginX, y);
         y += 18;
         doc.setFont('Helvetica', 'normal');
         continue;
@@ -407,13 +459,13 @@ export default function Home() {
           // Role / Designation on the left
           doc.setFont('Helvetica', 'normal');
           doc.setFontSize(9.5);
-          doc.text(designation, marginX, y);
+          doc.text(cleanUnicodeToASCII(designation), marginX, y);
           
           // Aligned dash in center (170pt)
           doc.text('-', marginX + 170, y);
           
           // Aligned Name on the right (195pt)
-          doc.text(name, marginX + 195, y);
+          doc.text(cleanUnicodeToASCII(name), marginX + 195, y);
           
           y += lineHeight;
           continue;
@@ -429,7 +481,7 @@ export default function Home() {
         
         doc.setFont('Helvetica', 'italic');
         doc.setFontSize(9.5);
-        const splitCert = doc.splitTextToSize(cleanLine, contentWidth);
+        const splitCert = doc.splitTextToSize(cleanUnicodeToASCII(cleanLine), contentWidth);
         for (const line of splitCert) {
           doc.text(line, marginX, y);
           y += lineHeight;
@@ -460,10 +512,10 @@ export default function Home() {
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(9);
         const secName = secretary || 'JANQUEL B. GEAGONIA';
-        doc.text(secName.toUpperCase(), leftLineX1, y);
+        doc.text(cleanUnicodeToASCII(secName.toUpperCase()), leftLineX1, y);
         
         const chairName = chair || 'KATHLYN BACLAYON';
-        doc.text(chairName.toUpperCase(), rightLineX1, y);
+        doc.text(cleanUnicodeToASCII(chairName.toUpperCase()), rightLineX1, y);
         
         y += 11;
         
@@ -508,16 +560,15 @@ export default function Home() {
         if (isIndented) {
           bulletIndent = 30;
           if (inDiscussion) {
-            bulletChar = 'o'; // Open circular bullet for discussion nested items
+            bulletChar = 'o'; // Open circular bullet
           } else {
-            bulletChar = '-'; // Dash bullet for agenda sub-items
+            bulletChar = '-'; // Dash bullet
           }
         } else {
           const rawTrim = lines[i].trim();
           if (rawTrim.startsWith('- ') || rawTrim.startsWith('* ')) {
             bulletChar = '•';
           } else {
-            // Check for numbered item
             const matchNumber = rawTrim.match(/^(\d+\.)/);
             if (matchNumber) {
               bulletChar = matchNumber[0];
@@ -531,14 +582,23 @@ export default function Home() {
           y = marginY;
         }
         
-        // Draw bullet
-        doc.setFont('Helvetica', 'bold');
-        doc.text(bulletChar, marginX + (bulletIndent - 12), y);
-        doc.setFont('Helvetica', 'normal');
+        // Draw bullet - use vector shapes for circle bullets to avoid encoding corruption!
+        if (bulletChar === '•') {
+          doc.setFillColor(80, 80, 80);
+          doc.circle(marginX + bulletIndent - 8, y - 3, 2, 'F');
+        } else if (bulletChar === 'o') {
+          doc.setLineWidth(0.5);
+          doc.setDrawColor(80, 80, 80);
+          doc.circle(marginX + bulletIndent - 8, y - 3, 2, 'D');
+        } else {
+          doc.setFont('Helvetica', 'bold');
+          doc.text(cleanUnicodeToASCII(bulletChar), marginX + (bulletIndent - 12), y);
+          doc.setFont('Helvetica', 'normal');
+        }
         
         // Draw wrapped list item text
         const textWidthLimit = contentWidth - bulletIndent;
-        const splitLines = doc.splitTextToSize(cleanedItemText, textWidthLimit);
+        const splitLines = doc.splitTextToSize(cleanUnicodeToASCII(cleanedItemText), textWidthLimit);
         for (let j = 0; j < splitLines.length; j++) {
           if (y + lineHeight > pageHeight - marginY) {
             doc.addPage();
@@ -555,7 +615,7 @@ export default function Home() {
           doc.setFont('Helvetica', 'normal');
         }
         
-        const splitLines = doc.splitTextToSize(cleanLine, contentWidth);
+        const splitLines = doc.splitTextToSize(cleanUnicodeToASCII(cleanLine), contentWidth);
         for (const line of splitLines) {
           if (y + lineHeight > pageHeight - marginY) {
             doc.addPage();
@@ -579,7 +639,7 @@ export default function Home() {
       // Top header on page 2 and up
       if (j > 1) {
         const headerTitle = title ? title.toUpperCase() : 'MEETING MINUTES';
-        doc.text(`MINUTES OF THE MEETING - ${headerTitle}`, marginX, 35);
+        doc.text(`MINUTES OF THE MEETING - ${cleanUnicodeToASCII(headerTitle)}`, marginX, 35);
         doc.setLineWidth(0.5);
         doc.setDrawColor(220, 220, 220);
         doc.line(marginX, 38, pageWidth - marginX, 38);
@@ -932,6 +992,15 @@ export default function Home() {
               >
                 {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
                 <span>Copy</span>
+              </button>
+              <button
+                onClick={downloadDOCX}
+                disabled={!minutes}
+                title="Download as Word Document (.docx)"
+                className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold text-indigo-400 border-indigo-950 hover:bg-indigo-950/20"
+              >
+                <FileText className="h-4 w-4 text-indigo-400" />
+                <span>Word</span>
               </button>
               <button
                 onClick={downloadMarkdown}
