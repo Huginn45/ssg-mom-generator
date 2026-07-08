@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, DragEvent, ChangeEvent } from 'react';
+
 import ReactMarkdown from 'react-markdown';
 import { jsPDF } from 'jspdf';
 import { 
@@ -20,10 +20,84 @@ import {
   User,
   Users,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Settings,
+  X,
+  HelpCircle
 } from 'lucide-react';
+import React, { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react';
 
 export default function Home() {
+  // GDocs Integration settings
+  const [scriptUrl, setScriptUrl] = useState('');
+  const [clientId, setClientId] = useState('');
+  const [accessToken, setAccessToken] = useState('');
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isGsiLoaded, setIsGsiLoaded] = useState(false);
+
+  // Temporary edit states inside Settings form
+  const [tempScriptUrl, setTempScriptUrl] = useState('');
+  const [tempClientId, setTempClientId] = useState('');
+
+  // Load settings on load
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedScriptUrl = localStorage.getItem('mom_gdocs_script_url') || '';
+      const savedClientId = localStorage.getItem('mom_gdocs_client_id') || '';
+      setScriptUrl(savedScriptUrl);
+      setClientId(savedClientId);
+      setTempScriptUrl(savedScriptUrl);
+      setTempClientId(savedClientId);
+    }
+  }, []);
+
+  // Load Google Identity Services library script dynamically
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://accounts.google.com/gsi/client';
+      script.async = true;
+      script.defer = true;
+      script.onload = () => setIsGsiLoaded(true);
+      document.body.appendChild(script);
+      return () => {
+        document.body.removeChild(script);
+      };
+    }
+  }, []);
+
+  const saveSettings = () => {
+    setScriptUrl(tempScriptUrl);
+    setClientId(tempClientId);
+    localStorage.setItem('mom_gdocs_script_url', tempScriptUrl);
+    localStorage.setItem('mom_gdocs_client_id', tempClientId);
+    setSuccess('Settings saved successfully!');
+    setIsSettingsOpen(false);
+  };
+
+  const handleGoogleSignIn = () => {
+    if (!clientId) {
+      setError('Please configure a Google Client ID in settings first.');
+      return;
+    }
+    try {
+      // @ts-ignore
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: clientId,
+        scope: 'https://www.googleapis.com/auth/drive.file',
+        callback: (tokenResponse: any) => {
+          if (tokenResponse.access_token) {
+            setAccessToken(tokenResponse.access_token);
+            setSuccess('Signed in with Google successfully!');
+          }
+        },
+      });
+      client.requestAccessToken();
+    } catch (err: any) {
+      setError('Google Sign-In failed: ' + err.message);
+    }
+  };
+
   // State variables for form fields
   const [title, setTitle] = useState('');
   const [date, setDate] = useState('');
@@ -479,23 +553,84 @@ export default function Home() {
       flushRollCall();
       html += '</div>';
 
-      // Write HTML format directly to the clipboard
-      const blob = new Blob([html], { type: 'text/html' });
-      const richText = new ClipboardItem({ 'text/html': blob });
-      await navigator.clipboard.write([richText]);
+      // 1. Check if Apps Script Web App Integration is configured
+      if (scriptUrl) {
+        setSuccess('Creating Google Doc via Apps Script Web App...');
+        const response = await fetch(scriptUrl, {
+          method: 'POST',
+          mode: 'cors', // Enable CORS
+          headers: {
+            'Content-Type': 'text/plain', // Avoid preflight CORS check in Google Script
+          },
+          body: JSON.stringify({
+            title: title || 'Minutes of the Meeting',
+            html: html,
+          }),
+        });
+        const resData = await response.json();
+        if (resData.url) {
+          window.open(resData.url, '_blank');
+          setSuccess('Google Doc created successfully!');
+        } else {
+          throw new Error(resData.error || 'Apps Script returned an error');
+        }
+      } 
+      // 2. Check if Google OAuth Client Integration is signed in
+      else if (accessToken) {
+        setSuccess('Creating Google Doc via Google Drive REST API...');
+        const docTitle = title || 'Minutes of the Meeting';
+        const metadata = {
+          name: docTitle,
+          mimeType: 'application/vnd.google-apps.document',
+        };
+        
+        const boundary = 'xxxxxxxxxx';
+        const requestBody = 
+          `--${boundary}\r\n` +
+          `Content-Type: application/json; charset=UTF-8\r\n\r\n` +
+          `${JSON.stringify(metadata)}\r\n` +
+          `--${boundary}\r\n` +
+          `Content-Type: text/html; charset=UTF-8\r\n\r\n` +
+          `${html}\r\n` +
+          `--${boundary}--`;
 
-      setSuccess('Formatted minutes copied to clipboard as Rich Text! Redirecting to Google Docs...');
-      
-      // Open blank Google doc in a new tab
-      setTimeout(() => {
-        window.open('https://docs.new', '_blank');
-      }, 1200);
+        const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': `multipart/related; boundary=${boundary}`,
+          },
+          body: requestBody,
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error('Google Drive API error: ' + errText);
+        }
+
+        const file = await response.json();
+        if (file.id) {
+          window.open(`https://docs.google.com/document/d/${file.id}/edit`, '_blank');
+          setSuccess('Google Doc created successfully!');
+        } else {
+          throw new Error('Failed to retrieve file ID from Google Drive API');
+        }
+      } 
+      // 3. Fallback: Copy to clipboard and open settings dialog
+      else {
+        setIsSettingsOpen(true);
+        // Write HTML format directly to the clipboard
+        const blob = new Blob([html], { type: 'text/html' });
+        const richText = new ClipboardItem({ 'text/html': blob });
+        await navigator.clipboard.write([richText]);
+        setSuccess('Minutes copied to clipboard! Please configure GDocs settings below to enable automatic creation.');
+      }
       
     } catch (err: any) {
+      console.error(err);
       setError(err.message || 'Failed to direct to Google Docs');
     }
   };
-
   // Download PDF using our high-fidelity text-wrapping renderer matching 1st Early Regular Meeting standard
   const downloadPDF = () => {
     if (!minutes) return;
@@ -1197,6 +1332,14 @@ export default function Home() {
 
             {/* Export options */}
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                title="Configure Google Docs integration"
+                className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-indigo-400 hover:bg-zinc-800 active:scale-95 transition flex items-center gap-1.5 text-xs font-semibold"
+              >
+                <Settings className="h-4 w-4" />
+                <span>GDocs Settings</span>
+              </button>
               <button
                 onClick={copyToClipboard}
                 disabled={!minutes}
