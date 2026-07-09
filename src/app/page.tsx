@@ -1120,6 +1120,9 @@ export default function Home() {
                           rows={6}
                           value={`function doPost(e) {
   try {
+    // Force Apps Script to request Google Drive permissions:
+    DriveApp.getRootFolder();
+
     var data = JSON.parse(e.postData.contents);
     var title = data.title || "Minutes";
     var html = data.html;
