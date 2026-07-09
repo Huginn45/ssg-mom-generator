@@ -556,13 +556,13 @@ export default function Home() {
       // 1. Check if Apps Script Web App Integration is configured
       if (scriptUrl) {
         setSuccess('Creating Google Doc via Apps Script Web App...');
-        const response = await fetch(scriptUrl, {
+        const response = await fetch('/api/gdocs-proxy', {
           method: 'POST',
-          mode: 'cors', // Enable CORS
           headers: {
-            'Content-Type': 'text/plain', // Avoid preflight CORS check in Google Script
+            'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            scriptUrl,
             title: title || 'Minutes of the Meeting',
             html: html,
           }),
