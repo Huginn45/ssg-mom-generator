@@ -1,8 +1,27 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fdfbf7; /* Warm SSG Cream */
+  --foreground: #121212; /* Deep Slate Black */
+  --border-color: #e8dfd1; /* Cream-dark border */
+  --card-bg: #ffffff; /* Clean white cards */
+  --sidebar-bg: #6b1113; /* SSG Maroon Sidebar */
+  --drawer-bg: #f4efe6; /* SSG Cream-dark drawer */
+  
+  /* Maroon and Gold Accents */
+  --color-maroon: #6b1113;
+  --color-maroon-dark: #4a0c0e;
+  --color-gold: #f4c430;
+  --color-gold-light: #f8d868;
+}
+
+.dark {
+  --background: #0f0203; /* Deep burgundy off-black */
+  --foreground: #fdfbf7; /* Cream text */
+  --border-color: #3b0a0d; /* Burgundy border */
+  --card-bg: #1c0507; /* Elevated deep maroon card */
+  --sidebar-bg: #150709; /* Burgundy-black sidebar */
+  --drawer-bg: #18090b; /* Deep maroon drawer background */
 }
 
 @theme inline {
@@ -10,36 +29,44 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  
+  /* Accent Color Bindings */
+  --color-maroon: var(--color-maroon);
+  --color-maroon-dark: var(--color-maroon-dark);
+  --color-gold: var(--color-gold);
+  --color-gold-light: var(--color-gold-light);
 }
 
 body {
-  background: #09090b; /* Zinc-950 dark background */
-  color: #f4f4f5; /* Zinc-100 foreground */
+  background: var(--background);
+  color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
 }
 
-/* Premium Dark Mode Scrollbar Styling */
+/* Premium Scrollbar Styling */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #09090b;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: rgba(107, 17, 19, 0.2);
   border-radius: 3px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(244, 196, 48, 0.2);
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: rgba(107, 17, 19, 0.4);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(244, 196, 48, 0.4);
 }

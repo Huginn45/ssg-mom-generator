@@ -23,7 +23,17 @@ import {
   ArrowRight,
   Settings,
   X,
-  HelpCircle
+  HelpCircle,
+  Mic,
+  MicOff,
+  FileAudio,
+  Plus,
+  CheckCircle2,
+  XCircle,
+  Sun,
+  Moon,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import React, { useState, useRef, useEffect, DragEvent, ChangeEvent } from 'react';
 
@@ -110,11 +120,83 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [activeTab, setActiveTab] = useState<'preview' | 'edit'>('preview');
+  const [activeSidebarTab, setActiveSidebarTab] = useState<'workspace' | 'metadata' | 'audio'>('workspace');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [copied, setCopied] = useState(false);
   const [isDragActive, setIsDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<{ name: string; size: number } | null>(null);
+
+  // New feature states: custom signatories, attendance tally, audio transcription
+  const [signatories, setSignatories] = useState<{ label: string; name: string; role: string }[]>([
+    { label: 'Prepared by:', name: '', role: 'Executive Secretary' },
+    { label: 'Attested By:', name: '', role: 'President / Chairperson' }
+  ]);
+  const [attendanceTally, setAttendanceTally] = useState<{
+    total: number;
+    present: number;
+    late: number;
+    excused: number;
+    absent: number;
+  } | null>(null);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+  const audioInputRef = useRef<HTMLInputElement>(null);
+
+  // Theme states
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
+  const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    const initialTheme = savedTheme || 'dark';
+    setTheme(initialTheme);
+    if (initialTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('theme', nextTheme);
+    if (nextTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  // Refs for checking manual edits on signatories name
+  const prevSecRef = useRef('');
+  const prevChairRef = useRef('');
+
+  // Sync secretary changes to first signatory name if not customized
+  useEffect(() => {
+    setSignatories(prev => {
+      const next = [...prev];
+      if (next[0] && (next[0].name === prevSecRef.current || !next[0].name)) {
+        next[0] = { ...next[0], name: secretary };
+      }
+      prevSecRef.current = secretary;
+      return next;
+    });
+  }, [secretary]);
+
+  // Sync chair changes to second signatory name if not customized
+  useEffect(() => {
+    setSignatories(prev => {
+      const next = [...prev];
+      if (next[1] && (next[1].name === prevChairRef.current || !next[1].name)) {
+        next[1] = { ...next[1], name: chair };
+      }
+      prevChairRef.current = chair;
+      return next;
+    });
+  }, [chair]);
 
   // File input ref
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -187,6 +269,218 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // React hooks and helper functions for new features
+  useEffect(() => {
+    calculateAttendanceTally(minutes);
+  }, [minutes]);
+
+  // Attendance tally calculation
+  const calculateAttendanceTally = (minutesText: string) => {
+    let total = 0, present = 0, late = 0, excused = 0, absent = 0;
+    if (!minutesText) {
+      setAttendanceTally(null);
+      return;
+    }
+    const lines = minutesText.split('\n');
+    let inRollCall = false;
+    let currentCategory = '';
+    
+    for (let line of lines) {
+      const cleanLine = line.replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '').trim();
+      const lowerLine = cleanLine.toLowerCase();
+      
+      // Section boundaries
+      if (lowerLine.includes('i. call to order')) {
+        inRollCall = false;
+      } else if (lowerLine.includes('iii. roll call') || lowerLine.includes('attendance')) {
+        inRollCall = true;
+        continue;
+      } else if (/^(i|ii|iv|v|vi|vii|viii|ix|x)\.\s+/i.test(cleanLine)) {
+        inRollCall = false;
+      }
+      
+      if (inRollCall) {
+        // Check category header
+        if (/^(PRESENT|LATE|EXCUSED|ABSENT|ON LEAVE)\:$/i.test(cleanLine)) {
+          currentCategory = cleanLine.toUpperCase().replace(':', '');
+          continue;
+        }
+        
+        // Check list item
+        if (currentCategory && /[-\–\—]/.test(cleanLine)) {
+          const parts = cleanLine.split(/\s*[-\–\—]\s*/);
+          if (parts.length >= 2) {
+            if (currentCategory === 'PRESENT') present++;
+            else if (currentCategory === 'LATE') late++;
+            else if (currentCategory === 'EXCUSED') excused++;
+            else if (currentCategory === 'ABSENT') absent++;
+            total++;
+          }
+        }
+      }
+    }
+    
+    if (total > 0) {
+      setAttendanceTally({ total, present, late, excused, absent });
+    } else {
+      setAttendanceTally(null);
+    }
+  };
+
+  // Signatory helper functions
+  const getSignatoriesMarkdown = (sigList: typeof signatories) => {
+    let md = '';
+    sigList.forEach(item => {
+      if (item.name) {
+        md += `\n\n${item.label || 'Prepared by:'}\n**${item.name}**\n${item.role}`;
+      }
+    });
+    return md;
+  };
+
+  const updateSignaturesInMarkdown = (sigList: typeof signatories) => {
+    if (!minutes) return;
+    
+    const lines = minutes.split('\n');
+    let certIndex = -1;
+    for (let k = 0; k < lines.length; k++) {
+      if (lines[k].toLowerCase().includes('i hereby certify')) {
+        certIndex = k;
+        break;
+      }
+    }
+    
+    if (certIndex !== -1) {
+      const topPart = lines.slice(0, certIndex + 1).join('\n');
+      const sigMd = getSignatoriesMarkdown(sigList);
+      setMinutes(topPart + sigMd);
+    }
+  };
+
+  const handleAddSignatory = () => {
+    setSignatories(prev => {
+      const next = [...prev, { label: '', name: '', role: '' }];
+      return next;
+    });
+  };
+
+  const handleRemoveSignatory = (index: number) => {
+    setSignatories(prev => {
+      const next = prev.filter((_, i) => i !== index);
+      updateSignaturesInMarkdown(next);
+      return next;
+    });
+  };
+
+  const handleSignatoryChange = (index: number, field: 'label' | 'name' | 'role', value: string) => {
+    setSignatories(prev => {
+      const next = [...prev];
+      if (next[index]) {
+        next[index] = { ...next[index], [field]: value };
+      }
+      updateSignaturesInMarkdown(next);
+      return next;
+    });
+  };
+
+  // Web Speech recognition for live mic recording
+  const toggleMicrophone = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Web Speech API is not supported in this browser. Please use Google Chrome or Microsoft Edge.");
+      return;
+    }
+
+    if (!isRecording) {
+      if (!recognitionRef.current) {
+        const rec = new SpeechRecognition();
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.lang = 'en-US';
+
+        rec.onresult = (event: any) => {
+          let finalTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            if (event.results[i].isFinal) {
+              finalTranscript += event.results[i][0].transcript + ' ';
+            }
+          }
+          if (finalTranscript) {
+            setRawNotes(prev => prev + finalTranscript);
+          }
+        };
+
+        rec.onend = () => {
+          setIsRecording(false);
+        };
+
+        rec.onerror = (e: any) => {
+          console.error("Speech recognition error:", e);
+        };
+
+        recognitionRef.current = rec;
+      }
+
+      recognitionRef.current.start();
+      setIsRecording(true);
+    } else {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsRecording(false);
+    }
+  };
+
+  const handleAudioFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      transcribeAudioFile(file);
+    }
+  };
+
+  const transcribeAudioFile = (file: File) => {
+    setUploading(true);
+    setError('');
+    setSuccess('');
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const base64Data = (reader.result as string).split(',')[1];
+        const mimeType = file.type || 'audio/mp3';
+
+        const response = await fetch('/api/transcribe-audio', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            audioData: base64Data,
+            mimeType: mimeType
+          })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to transcribe audio recording');
+        }
+
+        if (data.transcript) {
+          setRawNotes(data.transcript);
+          setSuccess('Audio transcribed successfully!');
+        } else {
+          setError('No text could be extracted from the audio file.');
+        }
+      } catch (err: any) {
+        setError(err.message || 'An error occurred during transcription');
+      } finally {
+        setUploading(false);
+        if (audioInputRef.current) audioInputRef.current.value = '';
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   // Drag handlers
@@ -390,9 +684,39 @@ export default function Home() {
           .replace(/[\u2022]/g, '-')
           .replace(/[\u2026]/g, '...');
 
-        // Section tracking based on Roman numerals
+        // Section tracking based on Roman numerals or key terms
         const lowerClean = cleanLine.toLowerCase();
-        if (lowerClean.includes('i. call to order')) {
+        const romanMatch = cleanLine.match(/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.\s+(.+)$/i);
+        let isValidRomanHeader = false;
+        let romanNum = '';
+        if (romanMatch) {
+          const restOfLine = romanMatch[2].trim().toLowerCase();
+          if (
+            restOfLine.includes('call to order') ||
+            restOfLine.includes('invocation') ||
+            restOfLine.includes('roll call') ||
+            restOfLine.includes('agenda') ||
+            restOfLine.includes('discussion') ||
+            restOfLine.includes('closing prayer') ||
+            restOfLine.includes('adjournment')
+          ) {
+            isValidRomanHeader = true;
+            romanNum = romanMatch[1].toUpperCase();
+          }
+        }
+        if (isValidRomanHeader) {
+          flushRollCall();
+          if (romanNum === 'III') {
+            inRollCall = true;
+            inDiscussion = false;
+          } else if (romanNum === 'V') {
+            inRollCall = false;
+            inDiscussion = true;
+          } else {
+            inRollCall = false;
+            inDiscussion = false;
+          }
+        } else if (lowerClean.includes('i. call to order')) {
           flushRollCall();
           inRollCall = false;
           inDiscussion = false;
@@ -403,7 +727,7 @@ export default function Home() {
           flushRollCall();
           inDiscussion = true;
           inRollCall = false;
-        } else if (lowerClean.includes('vi. adjournment') || lowerClean.includes('sign-off') || lowerClean.includes('certify')) {
+        } else if (lowerClean.includes('adjournment') || lowerClean.includes('sign-off') || lowerClean.includes('certify')) {
           flushRollCall();
           inDiscussion = false;
           inRollCall = false;
@@ -417,8 +741,22 @@ export default function Home() {
         }
 
         // Heading 2 (## Roman numerals) -> Uppercase bold 10.5pt
-        const isHeading2 = lineText.startsWith('## ') || 
-                           /^(I|II|III|IV|V|VI)\.\s+[A-Z\s]+/.test(cleanLine);
+        let isHeading2 = lineText.startsWith('## ');
+        const romanMatchTest = cleanLine.match(/^(I|II|III|IV|V|VI|VII|VIII)\.\s+(.+)$/i);
+        if (romanMatchTest) {
+          const restOfLine = romanMatchTest[2].trim().toLowerCase();
+          if (
+            restOfLine.includes('call to order') ||
+            restOfLine.includes('invocation') ||
+            restOfLine.includes('roll call') ||
+            restOfLine.includes('agenda') ||
+            restOfLine.includes('discussion') ||
+            restOfLine.includes('closing prayer') ||
+            restOfLine.includes('adjournment')
+          ) {
+            isHeading2 = true;
+          }
+        }
         if (isHeading2) {
           flushRollCall();
           let headingText = cleanLine;
@@ -443,16 +781,15 @@ export default function Home() {
         }
 
         // Roll Call section headers
-        if (inRollCall && (cleanLine === 'PRESENT:' || cleanLine === 'EXCUSED:' || cleanLine === 'ABSENT:')) {
+        if (inRollCall && /^(PRESENT|LATE|EXCUSED|ABSENT|ON LEAVE)\:$/i.test(cleanLine)) {
           flushRollCall();
           rollCallSectionName = cleanLine;
           continue;
         }
 
-        // Roll Call attendees split Designation - Name
-        if (inRollCall && (cleanLine.includes(' - ') || cleanLine.includes(' – '))) {
-          const divider = cleanLine.includes(' - ') ? ' - ' : ' – ';
-          const parts = cleanLine.split(divider);
+        // Roll Call attendees split Designation - Name (any hyphen/dash with or without spaces)
+        if (inRollCall && /[-\–\—]/.test(cleanLine)) {
+          const parts = cleanLine.split(/\s*[-\–\—]\s*/);
           if (parts.length >= 2) {
             rollCallMembers.push({
               role: parts[0].trim(),
@@ -467,29 +804,79 @@ export default function Home() {
           flushRollCall();
           html += `<p style="font-family: Arial; font-size: 9.5pt; font-style: italic; margin-top: 24px; margin-bottom: 48px; line-height: 1.4;">${cleanLine}</p>`;
           
-          const secName = secretary || 'JANQUEL B. GEAGONIA';
-          const chairName = chair || 'KATHLYN BACLAYON';
+          // Dynamic parsing of names and roles from lines below
+          const signatureBlocks: { label: string; name: string; role: string }[] = [];
+          let currentBlock: { label: string; name: string; role: string } | null = null;
+
+          for (let k = i + 1; k < lines.length; k++) {
+            const trimmed = lines[k].trim();
+            if (trimmed === '') continue;
+            const cleanItem = trimmed.replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '').trim();
+            
+            // Check if line is a label
+            if (/^(Prepared by|Attested by|Approved by|Noted by|Certified by|Signed by|Reviewed by|Verified by)\:?$/i.test(cleanItem)) {
+              if (currentBlock) {
+                signatureBlocks.push(currentBlock);
+              }
+              currentBlock = { label: cleanItem, name: '', role: '' };
+            } else {
+              if (!currentBlock) {
+                currentBlock = { label: 'Prepared by:', name: '', role: '' };
+              }
+              if (!currentBlock.name) {
+                currentBlock.name = cleanItem;
+              } else if (!currentBlock.role) {
+                currentBlock.role = cleanItem;
+              }
+            }
+          }
+          if (currentBlock) {
+            signatureBlocks.push(currentBlock);
+          }
+
+          // Fallback to default if no signature blocks parsed
+          if (signatureBlocks.length === 0) {
+            const secName = secretary || 'JANQUEL B. GEAGONIA';
+            const chairName = chair || 'KATHLYN BACLAYON';
+            signatureBlocks.push({ label: 'Prepared by:', name: secName, role: 'Executive Secretary' });
+            signatureBlocks.push({ label: 'Attested By:', name: chairName, role: 'President / Chairperson' });
+          }
           
           // Signatures side-by-side table
           html += `<table style="width: 100%; border-collapse: collapse; border: none; margin-top: 20px;">`;
-          html += `<tr style="border: none;">`;
-          
-          // Prepared by
-          html += `<td style="width: 45%; border: none; border-top: 1px solid #7A7A7A; padding-top: 8px; font-family: Arial; vertical-align: top;">`;
-          html += `<p style="font-size: 9pt; font-weight: bold; margin: 0; text-transform: uppercase;">${secName}</p>`;
-          html += `<p style="font-size: 8pt; color: #6E6E6E; margin: 2px 0 0 0;">Prepared by: Executive Secretary</p>`;
-          html += `</td>`;
-          
-          // Spacer
-          html += `<td style="width: 10%; border: none;"></td>`;
-          
-          // Attested by
-          html += `<td style="width: 45%; border: none; border-top: 1px solid #7A7A7A; padding-top: 8px; font-family: Arial; vertical-align: top;">`;
-          html += `<p style="font-size: 9pt; font-weight: bold; margin: 0; text-transform: uppercase;">${chairName}</p>`;
-          html += `<p style="font-size: 8pt; color: #6E6E6E; margin: 2px 0 0 0;">Attested By: President / Chairperson</p>`;
-          html += `</td>`;
-          
-          html += `</tr>`;
+          for (let b = 0; b < signatureBlocks.length; b += 2) {
+            html += `<tr style="border: none;">`;
+            
+            // Left column
+            const leftBlock = signatureBlocks[b];
+            html += `<td style="width: 45%; border: none; border-top: 1px solid #7A7A7A; padding-top: 8px; font-family: Arial; vertical-align: top;">`;
+            html += `<p style="font-size: 8pt; color: #6E6E6E; margin: 0 0 2px 0;">${leftBlock.label}</p>`;
+            html += `<p style="font-size: 9.5pt; font-weight: bold; margin: 0; text-transform: uppercase;">${leftBlock.name}</p>`;
+            html += `<p style="font-size: 8pt; color: #6E6E6E; margin: 2px 0 0 0; line-height: 1.3;">${leftBlock.role}</p>`;
+            html += `</td>`;
+            
+            // Spacer
+            html += `<td style="width: 10%; border: none;"></td>`;
+            
+            // Right column
+            const rightBlock = signatureBlocks[b + 1];
+            if (rightBlock) {
+              html += `<td style="width: 45%; border: none; border-top: 1px solid #7A7A7A; padding-top: 8px; font-family: Arial; vertical-align: top;">`;
+              html += `<p style="font-size: 8pt; color: #6E6E6E; margin: 0 0 2px 0;">${rightBlock.label}</p>`;
+              html += `<p style="font-size: 9.5pt; font-weight: bold; margin: 0; text-transform: uppercase;">${rightBlock.name}</p>`;
+              html += `<p style="font-size: 8pt; color: #6E6E6E; margin: 2px 0 0 0; line-height: 1.3;">${rightBlock.role}</p>`;
+              html += `</td>`;
+            } else {
+              html += `<td style="width: 45%; border: none;"></td>`;
+            }
+            
+            html += `</tr>`;
+            
+            // Add spacer row if there are more signatures
+            if (b + 2 < signatureBlocks.length) {
+              html += `<tr style="border: none; height: 30px;"><td colspan="3" style="border: none;"></td></tr>`;
+            }
+          }
           html += `</table>`;
           break; // Cert ends the document loop
         }
@@ -555,25 +942,32 @@ export default function Home() {
 
       // 1. Check if Apps Script Web App Integration is configured
       if (scriptUrl) {
-        setSuccess('Creating Google Doc via Apps Script Web App...');
-        const response = await fetch('/api/gdocs-proxy', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            scriptUrl,
-            title: title || 'Minutes of the Meeting',
-            html: html,
-          }),
-        });
-        const resData = await response.json();
-        if (resData.url) {
-          window.open(resData.url, '_blank');
-          setSuccess('Google Doc created successfully!');
-        } else {
-          throw new Error(resData.error || 'Apps Script returned an error');
-        }
+        setSuccess('Redirecting to Google Docs via Apps Script...');
+        
+        // Use direct form post to open in new tab. This passes browser cookies/auth natively,
+        // avoiding CORS blocks and Google login page 401 redirects.
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = scriptUrl;
+        form.target = '_blank';
+        
+        const titleInput = document.createElement('input');
+        titleInput.type = 'hidden';
+        titleInput.name = 'title';
+        titleInput.value = title || 'Minutes of the Meeting';
+        form.appendChild(titleInput);
+        
+        const htmlInput = document.createElement('input');
+        htmlInput.type = 'hidden';
+        htmlInput.name = 'html';
+        htmlInput.value = html;
+        form.appendChild(htmlInput);
+        
+        document.body.appendChild(form);
+        form.submit();
+        document.body.removeChild(form);
+        
+        setSuccess('Google Doc created successfully in a new tab!');
       } 
       // 2. Check if Google OAuth Client Integration is signed in
       else if (accessToken) {
@@ -670,18 +1064,22 @@ export default function Home() {
     const lines = minutes.split('\n');
     let inRollCall = false;
     let inDiscussion = false;
+    let lastWasListItem = false;
 
     for (let i = 0; i < lines.length; i++) {
       const rawLineText = lines[i];
       let lineText = rawLineText.trim();
       
-      // Skip empty lines, just add vertical spacing
+      // Skip empty lines, just add vertical spacing (highly optimized spacing for page layout)
       if (lineText === '') {
-        y += 8;
+        if (!inRollCall) {
+          y += lastWasListItem ? 2 : 6;
+        }
         if (y > pageHeight - marginY) {
           doc.addPage();
           y = marginY;
         }
+        lastWasListItem = false;
         continue;
       }
 
@@ -692,9 +1090,38 @@ export default function Home() {
       // Completely remove all raw asterisks from the text
       let cleanLine = lineText.replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '').trim();
 
-      // Manage section states based on Roman numerals
+      // Manage section states based on Roman numerals or key terms
       const lowerClean = cleanLine.toLowerCase();
-      if (lowerClean.includes('i. call to order')) {
+      const romanMatch = cleanLine.match(/^(I|II|III|IV|V|VI|VII|VIII|IX|X)\.\s+(.+)$/i);
+      let isValidRomanHeader = false;
+      let romanNum = '';
+      if (romanMatch) {
+        const restOfLine = romanMatch[2].trim().toLowerCase();
+        if (
+          restOfLine.includes('call to order') ||
+          restOfLine.includes('invocation') ||
+          restOfLine.includes('roll call') ||
+          restOfLine.includes('agenda') ||
+          restOfLine.includes('discussion') ||
+          restOfLine.includes('closing prayer') ||
+          restOfLine.includes('adjournment')
+        ) {
+          isValidRomanHeader = true;
+          romanNum = romanMatch[1].toUpperCase();
+        }
+      }
+      if (isValidRomanHeader) {
+        if (romanNum === 'III') {
+          inRollCall = true;
+          inDiscussion = false;
+        } else if (romanNum === 'V') {
+          inRollCall = false;
+          inDiscussion = true;
+        } else {
+          inRollCall = false;
+          inDiscussion = false;
+        }
+      } else if (lowerClean.includes('i. call to order')) {
         inRollCall = false;
         inDiscussion = false;
       } else if (lowerClean.includes('iii. roll call') || lowerClean.includes('attendance')) {
@@ -703,7 +1130,7 @@ export default function Home() {
       } else if (lowerClean.includes('v. discussion')) {
         inDiscussion = true;
         inRollCall = false;
-      } else if (lowerClean.includes('vi. adjournment') || lowerClean.includes('sign-off') || lowerClean.includes('certify')) {
+      } else if (lowerClean.includes('adjournment') || lowerClean.includes('sign-off') || lowerClean.includes('certify')) {
         inDiscussion = false;
         inRollCall = false;
       }
@@ -729,9 +1156,22 @@ export default function Home() {
       }
 
       // Check section headings (e.g. ## I. CALL TO ORDER, etc.)
-      const isHeading2 = lineText.startsWith('## ') || 
-                         /^(I|II|III|IV|V|VI)\.\s+[A-Z\s]+/.test(cleanLine);
-      
+      let isHeading2 = lineText.startsWith('## ');
+      const romanMatchTest = cleanLine.match(/^(I|II|III|IV|V|VI|VII|VIII)\.\s+(.+)$/i);
+      if (romanMatchTest) {
+        const restOfLine = romanMatchTest[2].trim().toLowerCase();
+        if (
+          restOfLine.includes('call to order') ||
+          restOfLine.includes('invocation') ||
+          restOfLine.includes('roll call') ||
+          restOfLine.includes('agenda') ||
+          restOfLine.includes('discussion') ||
+          restOfLine.includes('closing prayer') ||
+          restOfLine.includes('adjournment')
+        ) {
+          isHeading2 = true;
+        }
+      }
       if (isHeading2) {
         let headingText = cleanLine;
         if (lineText.startsWith('## ')) {
@@ -776,8 +1216,8 @@ export default function Home() {
         continue;
       }
 
-      // Roll Call headings (PRESENT:, EXCUSED:, ABSENT:)
-      const isRollCallHeading = cleanLine === 'PRESENT:' || cleanLine === 'EXCUSED:' || cleanLine === 'ABSENT:';
+      // Roll Call headings (PRESENT:, EXCUSED:, ABSENT:, LATE:)
+      const isRollCallHeading = /^(PRESENT|LATE|EXCUSED|ABSENT|ON LEAVE)\:$/i.test(cleanLine);
       if (inRollCall && isRollCallHeading) {
         doc.setFont('Helvetica', 'bold');
         doc.setFontSize(9.5);
@@ -785,16 +1225,15 @@ export default function Home() {
           doc.addPage();
           y = marginY;
         }
-        doc.text(cleanLine, marginX, y);
+        doc.text(cleanLine.toUpperCase(), marginX, y);
         y += lineHeight + 4; // Add extra gap
         doc.setFont('Helvetica', 'normal');
         continue;
       }
 
-      // Roll Call attendee columns alignment: Designation - Name
-      if (inRollCall && (cleanLine.includes(' - ') || cleanLine.includes(' – '))) {
-        const divider = cleanLine.includes(' - ') ? ' - ' : ' – ';
-        const parts = cleanLine.split(divider);
+      // Roll Call attendee columns alignment: Designation - Name (any hyphen/dash with or without spaces)
+      if (inRollCall && /[-\–\—]/.test(cleanLine)) {
+        const parts = cleanLine.split(/\s*[-\–\—]\s*/);
         if (parts.length >= 2) {
           const designation = parts[0].trim();
           const name = parts[1].trim();
@@ -837,43 +1276,115 @@ export default function Home() {
         
         y += 48; // Spacing for signature lines
         
-        if (y + 50 > pageHeight - marginY) {
-          doc.addPage();
-          y = marginY;
+        // Dynamic parsing of names and roles from lines below
+        const signatureBlocks: { label: string; name: string; role: string }[] = [];
+        let currentBlock: { label: string; name: string; role: string } | null = null;
+
+        for (let k = i + 1; k < lines.length; k++) {
+          const trimmed = lines[k].trim();
+          if (trimmed === '') continue;
+          const cleanItem = trimmed.replace(/\*\*/g, '').replace(/\*/g, '').replace(/__/g, '').trim();
+          
+          // Check if line is a label
+          if (/^(Prepared by|Attested by|Approved by|Noted by|Certified by|Signed by|Reviewed by|Verified by)\:?$/i.test(cleanItem)) {
+            if (currentBlock) {
+              signatureBlocks.push(currentBlock);
+            }
+            currentBlock = { label: cleanItem, name: '', role: '' };
+          } else {
+            if (!currentBlock) {
+              currentBlock = { label: 'Prepared by:', name: '', role: '' };
+            }
+            if (!currentBlock.name) {
+              currentBlock.name = cleanItem;
+            } else if (!currentBlock.role) {
+              currentBlock.role = cleanItem;
+            }
+          }
         }
-        
-        const leftLineX1 = marginX;
-        const leftLineX2 = marginX + 180;
-        const rightLineX1 = pageWidth - marginX - 180;
-        const rightLineX2 = pageWidth - marginX;
-        
-        doc.setLineWidth(0.75);
-        doc.setDrawColor(120, 120, 120);
-        
-        // Draw side-by-side signature lines
-        doc.line(leftLineX1, y, leftLineX2, y);
-        doc.line(rightLineX1, y, rightLineX2, y);
-        
-        y += 12;
-        
-        // Print names under signature lines
-        doc.setFont('Helvetica', 'bold');
-        doc.setFontSize(9);
-        const secName = secretary || 'JANQUEL B. GEAGONIA';
-        doc.text(cleanUnicodeToASCII(secName.toUpperCase()), leftLineX1, y);
-        
-        const chairName = chair || 'KATHLYN BACLAYON';
-        doc.text(cleanUnicodeToASCII(chairName.toUpperCase()), rightLineX1, y);
-        
-        y += 11;
-        
-        doc.setFont('Helvetica', 'normal');
-        doc.setFontSize(8);
-        doc.setTextColor(110, 110, 110);
-        doc.text('Prepared by: Executive Secretary', leftLineX1, y);
-        doc.text('Attested By: President / Chairperson', rightLineX1, y);
+        if (currentBlock) {
+          signatureBlocks.push(currentBlock);
+        }
+
+        // Fallback to default if no signature blocks parsed
+        if (signatureBlocks.length === 0) {
+          const secName = secretary || 'JANQUEL B. GEAGONIA';
+          const chairName = chair || 'KATHLYN BACLAYON';
+          signatureBlocks.push({ label: 'Prepared by:', name: secName, role: 'Executive Secretary' });
+          signatureBlocks.push({ label: 'Attested By:', name: chairName, role: 'President / Chairperson' });
+        }
+
+        for (let b = 0; b < signatureBlocks.length; b += 2) {
+          if (y + 50 > pageHeight - marginY) {
+            doc.addPage();
+            y = marginY;
+          }
+          
+          const leftBlock = signatureBlocks[b];
+          const rightBlock = signatureBlocks[b + 1];
+          
+          const leftLineX1 = marginX;
+          const leftLineX2 = marginX + 180;
+          const rightLineX1 = pageWidth - marginX - 180;
+          const rightLineX2 = pageWidth - marginX;
+          
+          doc.setLineWidth(0.75);
+          doc.setDrawColor(120, 120, 120);
+          
+          doc.line(leftLineX1, y, leftLineX2, y);
+          if (rightBlock) {
+            doc.line(rightLineX1, y, rightLineX2, y);
+          }
+          
+          y += 12;
+          
+          // Left Block
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(110, 110, 110);
+          doc.text(cleanUnicodeToASCII(leftBlock.label), leftLineX1, y - 18);
+          
+          doc.setFont('Helvetica', 'bold');
+          doc.setFontSize(9);
+          doc.setTextColor(30, 30, 30);
+          doc.text(cleanUnicodeToASCII(leftBlock.name.toUpperCase()), leftLineX1, y);
+          
+          doc.setFont('Helvetica', 'normal');
+          doc.setFontSize(8);
+          doc.setTextColor(110, 110, 110);
+          const leftRoleLines = doc.splitTextToSize(cleanUnicodeToASCII(leftBlock.role), 180);
+          let leftY = y + 10;
+          for (const line of leftRoleLines) {
+            doc.text(line, leftLineX1, leftY);
+            leftY += 10;
+          }
+          
+          // Right Block
+          if (rightBlock) {
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(110, 110, 110);
+            doc.text(cleanUnicodeToASCII(rightBlock.label), rightLineX1, y - 18);
+            
+            doc.setFont('Helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(30, 30, 30);
+            doc.text(cleanUnicodeToASCII(rightBlock.name.toUpperCase()), rightLineX1, y);
+            
+            doc.setFont('Helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(110, 110, 110);
+            const rightRoleLines = doc.splitTextToSize(cleanUnicodeToASCII(rightBlock.role), 180);
+            let rightY = y + 10;
+            for (const line of rightRoleLines) {
+              doc.text(line, rightLineX1, rightY);
+              rightY += 10;
+            }
+          }
+          
+          y += 45; // Row spacer
+        }
         doc.setTextColor(30, 30, 30);
-        
         break; // End of document
       }
 
@@ -902,6 +1413,12 @@ export default function Home() {
       doc.setFontSize(9.5);
 
       if (isListItem) {
+        // Add small padding before the list if the previous line wasn't a list item
+        if (!lastWasListItem) {
+          y += 4;
+        }
+        lastWasListItem = true;
+        
         let bulletChar = '•';
         let bulletIndent = 15;
         
@@ -956,6 +1473,7 @@ export default function Home() {
           y += lineHeight;
         }
       } else {
+        lastWasListItem = false;
         // Normal paragraph text
         if (isOriginalBold) {
           doc.setFont('Helvetica', 'bold');
@@ -1009,37 +1527,37 @@ export default function Home() {
       </h1>
     ),
     h2: ({ children }: any) => (
-      <h2 className="text-lg md:text-xl font-bold text-indigo-400 mt-8 mb-4 tracking-wide uppercase border-b border-zinc-800/40 pb-1 font-sans">
+      <h2 className="text-lg md:text-xl font-bold text-maroon dark:text-gold mt-8 mb-4 tracking-wide uppercase border-b border-zinc-800/40 pb-1 font-sans">
         {children}
       </h2>
     ),
     h3: ({ children }: any) => (
-      <h3 className="text-base md:text-lg font-semibold text-emerald-400 mt-6 mb-3 font-sans">
+      <h3 className="text-base md:text-lg font-semibold text-emerald-600 dark:text-emerald-400 mt-6 mb-3 font-sans">
         {children}
       </h3>
     ),
     p: ({ children }: any) => (
-      <p className="text-zinc-300 leading-relaxed mb-4 text-sm md:text-base font-sans">
+      <p className="text-zinc-800 dark:text-zinc-300 leading-relaxed mb-4 text-sm md:text-base font-sans">
         {children}
       </p>
     ),
     ul: ({ children }: any) => (
-      <ul className="list-disc pl-6 mb-5 space-y-2 text-zinc-300 text-sm md:text-base font-sans">
+      <ul className="list-disc pl-6 mb-5 space-y-2 text-zinc-800 dark:text-zinc-300 text-sm md:text-base font-sans">
         {children}
       </ul>
     ),
     ol: ({ children }: any) => (
-      <ol className="list-decimal pl-6 mb-5 space-y-2 text-zinc-300 text-sm md:text-base font-sans">
+      <ol className="list-decimal pl-6 mb-5 space-y-2 text-zinc-800 dark:text-zinc-300 text-sm md:text-base font-sans">
         {children}
       </ol>
     ),
     li: ({ children }: any) => (
-      <li className="text-zinc-300 leading-relaxed">
+      <li className="text-zinc-800 dark:text-zinc-300 leading-relaxed">
         {children}
       </li>
     ),
     blockquote: ({ children }: any) => (
-      <blockquote className="border-l-4 border-indigo-500 pl-4 italic text-zinc-400 my-5 bg-zinc-900/40 py-2 rounded-r-md">
+      <blockquote className="border-l-4 border-maroon dark:border-gold pl-4 italic text-zinc-600 dark:text-zinc-400 my-5 bg-zinc-100 dark:bg-zinc-900/40 py-2 rounded-r-md">
         {children}
       </blockquote>
     ),
@@ -1063,55 +1581,55 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-200 flex flex-col font-sans">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 text-zinc-800 dark:text-zinc-200 flex flex-col font-sans transition-colors duration-200">
       
       {/* Settings Modal Dialog for GDocs */}
       {isSettingsOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-zinc-950 border border-zinc-800 rounded-xl p-6 shadow-2xl space-y-6">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in">
+          <div className="relative w-full max-w-2xl max-h-[85vh] overflow-y-auto bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl p-6 shadow-2xl space-y-6 text-zinc-800 dark:text-zinc-200">
             <button
               onClick={() => setIsSettingsOpen(false)}
-              className="absolute top-4 right-4 p-1.5 rounded-lg text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900 transition"
+              className="absolute top-4 right-4 p-1.5 rounded-lg text-zinc-400 hover:text-zinc-650 dark:hover:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition"
             >
               <X className="h-5 w-5" />
             </button>
 
             <div className="space-y-1">
-              <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
-                <Settings className="h-5 w-5 text-indigo-400" />
+              <h2 className="text-lg font-bold text-maroon dark:text-gold flex items-center gap-2">
+                <Settings className="h-5 w-5 text-maroon dark:text-gold" />
                 Google Docs Integration Settings
               </h2>
-              <p className="text-xs text-zinc-400">
+              <p className="text-xs text-zinc-550 dark:text-zinc-400">
                 To automate document creation (opening Docs with the minutes content pre-populated), configure either Method A or Method B below.
               </p>
             </div>
 
-            <div className="space-y-6 divide-y divide-zinc-900">
+            <div className="space-y-6 divide-y divide-zinc-200 dark:divide-zinc-900">
               {/* Method A */}
               <div className="space-y-3 pt-1">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-indigo-400">Method A: Google Apps Script (Recommended - No Cloud Setup)</h3>
-                  <span className="text-xxs px-2 py-0.5 rounded bg-indigo-950/50 text-indigo-300 border border-indigo-900/50 font-mono">Zero Config</span>
+                  <h3 className="text-sm font-semibold text-maroon dark:text-gold">Method A: Google Apps Script (Recommended - No Cloud Setup)</h3>
+                  <span className="text-xxs px-2 py-0.5 rounded bg-maroon/10 dark:bg-gold/10 text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20 font-mono">Zero Config</span>
                 </div>
-                <p className="text-xs text-zinc-400 leading-normal">
+                <p className="text-xs text-zinc-550 dark:text-zinc-400 leading-normal">
                   Creates documents directly in your Google Drive using a simple Apps Script. No Google Cloud APIs or console setup required.
                 </p>
                 <div className="space-y-1.5">
-                  <label className="text-xs text-zinc-400 font-medium">Google Apps Script Web App URL</label>
+                  <label className="text-xs text-zinc-600 dark:text-zinc-450 font-medium">Google Apps Script Web App URL</label>
                   <input
                     type="text"
                     value={tempScriptUrl}
                     onChange={(e) => setTempScriptUrl(e.target.value)}
                     placeholder="https://script.google.com/macros/s/..."
-                    className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition"
+                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
                   />
                 </div>
 
                 {/* Steps Accordion */}
                 <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-900 space-y-3 text-xs">
                   <span className="font-semibold text-zinc-300">Quick 3-Minute Setup Instructions:</span>
-                  <ol className="list-decimal pl-4 space-y-2 text-zinc-400">
-                    <li>Go to <a href="https://script.google.com" target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">script.google.com</a> and click <strong>New Project</strong>.</li>
+                  <ol className="list-decimal pl-4 space-y-2 text-zinc-550 dark:text-zinc-450">
+                    <li>Go to <a href="https://script.google.com" target="_blank" rel="noreferrer" className="text-maroon dark:text-gold hover:underline">script.google.com</a> and click <strong>New Project</strong>.</li>
                     <li>
                       Replace the entire script with this code:
                       <div className="relative mt-1.5">
@@ -1123,9 +1641,9 @@ export default function Home() {
     // Force Apps Script to request Google Drive permissions:
     DriveApp.getRootFolder();
 
-    var data = JSON.parse(e.postData.contents);
-    var title = data.title || "Minutes";
-    var html = data.html;
+    // Read form POST parameters passed from browser
+    var title = e.parameter.title || "Minutes";
+    var html = e.parameter.html;
     var metadata = { name: title, mimeType: "application/vnd.google-apps.document" };
     var boundary = "xxxxxxxxxx";
     var requestBody = "--" + boundary + "\\r\\n" +
@@ -1145,15 +1663,16 @@ export default function Home() {
     var response = UrlFetchApp.fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart", options);
     var resData = JSON.parse(response.getContentText());
     if (resData.id) {
-      return ContentService.createTextOutput(JSON.stringify({ url: "https://docs.google.com/document/d/" + resData.id + "/edit" }))
-        .setMimeType(ContentService.MimeType.JSON);
+      var docUrl = "https://docs.google.com/document/d/" + resData.id + "/edit";
+      var redirectHtml = "<html><head><script>window.location.href='" + docUrl + "';</script></head><body style='font-family:Arial,sans-serif;background:#09090b;color:#a1a1aa;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;'><div>Redirecting to Google Doc...</div></body></html>";
+      return HtmlService.createHtmlOutput(redirectHtml);
     }
-    return ContentService.createTextOutput(JSON.stringify({ error: resData })).setMimeType(ContentService.MimeType.JSON);
+    return HtmlService.createHtmlOutput("Error: " + JSON.stringify(resData));
   } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({ error: err.toString() })).setMimeType(ContentService.MimeType.JSON);
+    return HtmlService.createHtmlOutput("Error: " + err.toString());
   }
 }`}
-                          className="w-full p-2 bg-zinc-950 border border-zinc-800 rounded font-mono text-[10px] text-zinc-300 focus:outline-none"
+                          className="w-full p-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded font-mono text-[10px] text-zinc-800 dark:text-zinc-300 focus:outline-none"
                         />
                       </div>
                     </li>
@@ -1166,26 +1685,26 @@ export default function Home() {
               {/* Method B */}
               <div className="space-y-3 pt-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-indigo-400">Method B: Google Drive API (OAuth Consent Screen)</h3>
-                  <span className="text-xxs px-2 py-0.5 rounded bg-zinc-900 text-zinc-500 border border-zinc-850 font-mono">Standard OAuth</span>
+                  <h3 className="text-sm font-semibold text-maroon dark:text-gold">Method B: Google Drive API (OAuth Consent Screen)</h3>
+                  <span className="text-xxs px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-550 dark:text-zinc-450 border border-zinc-250 dark:border-zinc-850 font-mono">Standard OAuth</span>
                 </div>
-                <p className="text-xs text-zinc-400 leading-normal">
-                  Authorizes credentials natively in the browser. Requires creating a Google Cloud OAuth Client ID with Authorized JavaScript Origins set to <code>http://localhost:3000</code>.
+                <p className="text-xs text-zinc-550 dark:text-zinc-400 leading-normal">
+                  Authorizes credentials natively in the browser. Requires creating a Google Cloud OAuth Client ID with Authorized JavaScript Origins set to your origin.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs text-zinc-400 font-medium">Google Client ID</label>
+                    <label className="text-xs text-zinc-600 dark:text-zinc-450 font-medium">Google Client ID</label>
                     <input
                       type="text"
                       value={tempClientId}
                       onChange={(e) => setTempClientId(e.target.value)}
                       placeholder="e.g. 12345-abcde.apps.googleusercontent.com"
-                      className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-700 focus:outline-none focus:border-indigo-500 transition"
+                      className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
                     />
                   </div>
                   <div className="space-y-1.5 flex flex-col justify-end">
                     {accessToken ? (
-                      <div className="px-3 py-2 rounded-lg border border-emerald-900 bg-emerald-950/20 text-emerald-400 text-xs flex items-center justify-between">
+                      <div className="px-3 py-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 text-xs flex items-center justify-between font-bold">
                         <span>Signed in to Google</span>
                         <Check className="h-4 w-4" />
                       </div>
@@ -1193,9 +1712,9 @@ export default function Home() {
                       <button
                         onClick={handleGoogleSignIn}
                         disabled={!tempClientId}
-                        className="w-full py-2 px-3 rounded-lg border border-zinc-800 hover:border-zinc-700 bg-zinc-900 text-xs font-semibold text-zinc-200 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-2"
+                        className="w-full py-2 px-3 rounded-lg border border-zinc-250 dark:border-zinc-800 hover:border-maroon dark:hover:border-gold bg-white dark:bg-zinc-900 text-xs font-semibold text-zinc-800 dark:text-zinc-200 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-2"
                       >
-                        <Sparkles className="h-3.5 w-3.5 text-indigo-400" />
+                        <Sparkles className="h-3.5 w-3.5 text-maroon dark:text-gold" />
                         <span>Sign in with Google</span>
                       </button>
                     )}
@@ -1205,16 +1724,16 @@ export default function Home() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 border-t border-zinc-900 pt-4">
+            <div className="flex items-center justify-end gap-3 border-t border-zinc-200 dark:border-zinc-900 pt-4">
               <button
                 onClick={() => setIsSettingsOpen(false)}
-                className="px-4 py-2 rounded-lg bg-zinc-900 border border-zinc-850 hover:bg-zinc-850 text-xs font-semibold text-zinc-400 transition"
+                className="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-850 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-550 dark:text-zinc-400 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={saveSettings}
-                className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 active:scale-95 text-xs font-semibold text-white shadow-lg shadow-indigo-600/10 transition"
+                className="px-4 py-2 rounded-lg bg-maroon dark:bg-gold hover:bg-maroon-dark dark:hover:bg-gold-light text-gold dark:text-maroon text-xs font-bold uppercase tracking-wider shadow-lg transition-all active:scale-95"
               >
                 Save Integration Settings
               </button>
@@ -1224,255 +1743,486 @@ export default function Home() {
         </div>
       )}
 
-      {/* Top Navigation */}
-      <header className="border-b border-zinc-900 bg-zinc-950/80 backdrop-blur-md sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-tr from-indigo-600 to-violet-500 p-2 rounded-xl shadow-lg shadow-indigo-500/20">
-            <Sparkles className="h-5 w-5 text-white animate-pulse" />
-          </div>
-          <div>
-            <h1 className="text-lg font-bold tracking-tight text-white flex items-center gap-2">
-              Smart MoM Generator
-              <span className="text-xs bg-zinc-900 border border-zinc-800 px-2 py-0.5 rounded-full text-indigo-400 font-medium">v1.0</span>
-            </h1>
-            <p className="text-xs text-zinc-500">AI-Powered Minutes of the Meeting Workspace</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></div>
-          <span className="text-xs text-zinc-400 font-medium">Gemini Pro Connected</span>
-        </div>
-      </header>
-
-      {/* Main Container: Full-Height Flex Split Screen */}
-      <main className="flex-1 flex flex-col md:flex-row md:h-[calc(100vh-73px)] md:overflow-hidden">
-        
-        {/* Left Panel: Inputs (Scrollable) */}
-        <section className="w-full md:w-1/2 h-auto md:h-full md:overflow-y-auto p-6 md:p-8 space-y-8 border-b md:border-b-0 md:border-r border-zinc-900 bg-zinc-950">
+      {/* Main Container: Full-Height Flex Dashboard Layout */}
+      <main className="flex-1 flex flex-col md:flex-row md:h-screen md:overflow-hidden">
+        {/* Far-Left Navigation Sidebar (w-16 Default, hover expands to w-56 with text names) */}
+        <aside className="w-full md:w-16 hover:md:w-56 bg-maroon dark:bg-[#150709] border-b md:border-b-0 md:border-r border-white/10 dark:border-white/5 flex md:flex-col items-center justify-around md:justify-start py-3 md:py-6 gap-3 md:gap-6 shrink-0 z-30 shadow-lg md:h-full group transition-all duration-300 ease-in-out overflow-hidden px-3">
           
-          {/* Metadata Section */}
-          <div className="space-y-4">
-            <div className="flex items-center gap-2 border-b border-zinc-900 pb-2">
-              <Layers className="h-4 w-4 text-indigo-400" />
-              <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">1. Meeting Metadata</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-title">
-                  <FileText className="h-3 w-3" /> Meeting Title
-                </label>
-                <input
-                  id="meeting-title"
-                  type="text"
-                  placeholder="e.g., Q3 Planning & Budget Review"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-date">
-                  <Calendar className="h-3 w-3" /> Date & Time
-                </label>
-                <input
-                  id="meeting-date"
-                  type="text"
-                  placeholder="e.g., July 8, 2026 at 2:00 PM"
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-chair">
-                  <User className="h-3 w-3" /> Chairperson
-                </label>
-                <input
-                  id="meeting-chair"
-                  type="text"
-                  placeholder="e.g., Clara Oswald (CEO)"
-                  value={chair}
-                  onChange={(e) => setChair(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-secretary">
-                  <Users className="h-3 w-3" /> Secretary / Note Taker
-                </label>
-                <input
-                  id="meeting-secretary"
-                  type="text"
-                  placeholder="e.g., John Smith"
-                  value={secretary}
-                  onChange={(e) => setSecretary(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-800 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition"
-                />
-              </div>
-            </div>
+          {/* Top Logo */}
+          <div className="hidden md:flex items-center w-full bg-white/10 border border-white/10 p-2.5 rounded-xl shadow-sm text-gold mb-2 whitespace-nowrap">
+            <Sparkles className="h-5 w-5 shrink-0 animate-pulse text-gold" />
+            <span className="ml-3 text-xs font-bold font-sans tracking-wide text-gold opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+              SECRETARY AI
+            </span>
           </div>
 
-          {/* Quick Test Samples */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
-              <div className="flex items-center gap-2">
-                <FileCheck className="h-4 w-4 text-indigo-400" />
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">2. Quick Test Samples</h2>
-              </div>
-              <span className="text-xxs px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 font-mono">Workspace Files</span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {sampleFiles.map((sample, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleLoadSample(sample.fileName)}
-                  className="flex flex-col text-left p-3 rounded-lg border border-zinc-900 bg-zinc-950 hover:bg-zinc-900 hover:border-zinc-800 active:scale-98 transition text-xs group"
-                >
-                  <span className="font-semibold text-zinc-300 group-hover:text-indigo-400 transition mb-1 flex items-center justify-between w-full">
-                    {sample.displayName}
-                    <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-[-4px] group-hover:translate-x-0" />
-                  </span>
-                  <span className="text-xxs text-zinc-500 leading-normal">{sample.description}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Raw Notes Upload & Text Area */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-900 pb-2">
-              <div className="flex items-center gap-2">
-                <Upload className="h-4 w-4 text-indigo-400" />
-                <h2 className="text-sm font-semibold uppercase tracking-wider text-zinc-400">3. Document Upload / Notes Input</h2>
-              </div>
-              <div className="text-xs text-zinc-500 font-medium">
-                {rawNotes ? `${rawNotes.split(/\s+/).filter(Boolean).length} words` : 'Empty'}
-              </div>
-            </div>
-
-            {/* Drag & Drop File Zone */}
-            <div
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition flex flex-col items-center justify-center min-h-[120px] ${
-                isDragActive 
-                  ? 'border-indigo-500 bg-indigo-950/20' 
-                  : uploadedFile 
-                    ? 'border-emerald-800/80 bg-emerald-950/5' 
-                    : 'border-zinc-800 hover:border-zinc-700 bg-zinc-900/10'
+          {/* Middle Navigation Buttons */}
+          <div className="flex md:flex-col gap-3 md:gap-5 w-full">
+            <button 
+              type="button"
+              onClick={() => setActiveSidebarTab('workspace')} 
+              title="Workspace & Raw Notes" 
+              className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 active:scale-90 whitespace-nowrap ${
+                activeSidebarTab === 'workspace' 
+                  ? 'bg-white/10 text-gold border border-white/10 shadow-inner font-semibold' 
+                  : 'text-gold/60 hover:bg-white/5 hover:text-gold border border-transparent'
               }`}
             >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".docx"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-
-              {uploading ? (
-                <div className="flex flex-col items-center gap-2 text-zinc-400">
-                  <RefreshCw className="h-8 w-8 text-indigo-500 animate-spin" />
-                  <span className="text-sm font-semibold">Reading document content...</span>
-                </div>
-              ) : uploadedFile ? (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="bg-emerald-500/10 p-2.5 rounded-full border border-emerald-500/20 text-emerald-400 mb-1">
-                    <FileCheck className="h-6 w-6" />
-                  </div>
-                  <span className="text-sm font-semibold text-zinc-200">{uploadedFile.name}</span>
-                  {uploadedFile.size > 0 && (
-                    <span className="text-xs text-zinc-500">Size: {Math.round(uploadedFile.size / 1024)} KB</span>
-                  )}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      clearFile();
-                    }}
-                    className="mt-3 px-3 py-1 rounded bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-xs text-zinc-400 flex items-center gap-1.5 transition active:scale-95"
-                  >
-                    <Trash2 className="h-3.5 w-3.5 text-zinc-500" /> Clear File
-                  </button>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <div className="bg-zinc-900 p-2.5 rounded-full border border-zinc-800 text-zinc-400 mb-1">
-                    <Upload className="h-6 w-6" />
-                  </div>
-                  <span className="text-sm font-semibold text-zinc-200">Drag & drop your .docx file here</span>
-                  <span className="text-xs text-zinc-500">or click to browse from local drive</span>
-                </div>
-              )}
-            </div>
-
-            {/* Raw Notes Area */}
-            <div className="space-y-1">
-              <label htmlFor="raw-notes-input" className="text-xs font-semibold text-zinc-400">Raw Unstructured Notes</label>
-              <textarea
-                id="raw-notes-input"
-                placeholder="Paste or type unorganized notes, transcripts, agenda topics, and raw details here..."
-                value={rawNotes}
-                onChange={(e) => setRawNotes(e.target.value)}
-                className="w-full h-64 p-4 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-zinc-200 font-sans focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition resize-y placeholder-zinc-600"
-              />
-            </div>
+              <Layers className="h-5 w-5 shrink-0" />
+              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+                Workspace
+              </span>
+            </button>
+            <button 
+              type="button"
+              onClick={() => setActiveSidebarTab('metadata')} 
+              title="Meeting Metadata & Signatories" 
+              className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 active:scale-90 whitespace-nowrap ${
+                activeSidebarTab === 'metadata' 
+                  ? 'bg-white/10 text-gold border border-white/10 shadow-inner font-semibold' 
+                  : 'text-gold/60 hover:bg-white/5 hover:text-gold border border-transparent'
+              }`}
+            >
+              <Users className="h-5 w-5 shrink-0" />
+              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+                Meeting Info
+              </span>
+            </button>
+            <button 
+              type="button"
+              onClick={() => setActiveSidebarTab('audio')} 
+              title="Audio Transcription & Dictation" 
+              className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 active:scale-90 whitespace-nowrap ${
+                activeSidebarTab === 'audio' 
+                  ? 'bg-white/10 text-gold border border-white/10 shadow-inner font-semibold' 
+                  : 'text-gold/60 hover:bg-white/5 hover:text-gold border border-transparent'
+              }`}
+            >
+              <Mic className="h-5 w-5 shrink-0" />
+              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+                Audio & Voice
+              </span>
+            </button>
           </div>
 
-          {/* Feedback Messages */}
-          {error && (
-            <div className="p-3 bg-red-950/30 border border-red-900/50 text-red-400 rounded-lg text-xs flex items-start gap-2.5">
-              <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{error}</span>
-            </div>
-          )}
+          {/* Bottom Actions */}
+          <div className="flex md:flex-col items-center gap-3 md:gap-5 mt-auto w-full">
+            {/* Collapse/Expand Drawer Toggle (Desktop Only) */}
+            <button 
+              type="button"
+              onClick={() => setIsDrawerCollapsed(!isDrawerCollapsed)} 
+              title={isDrawerCollapsed ? "Expand Input Panel" : "Collapse Input Panel"} 
+              className="hidden md:flex items-center w-full p-3 rounded-xl hover:bg-white/5 text-gold/60 hover:text-gold active:scale-90 border border-transparent transition-all shadow-none whitespace-nowrap"
+            >
+              {isDrawerCollapsed ? <ChevronRight className="h-5 w-5 shrink-0" /> : <ChevronLeft className="h-5 w-5 shrink-0" />}
+              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+                {isDrawerCollapsed ? 'Expand Panel' : 'Collapse Panel'}
+              </span>
+            </button>
 
-          {success && (
-            <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 text-emerald-400 rounded-lg text-xs flex items-start gap-2.5 animate-fade-in">
-              <Check className="h-4 w-4 shrink-0 mt-0.5" />
-              <span>{success}</span>
-            </div>
-          )}
+            {/* Theme Toggle Button */}
+            <button 
+              type="button"
+              onClick={toggleTheme} 
+              title="Toggle Light/Dark Theme" 
+              className="flex items-center w-full p-3 rounded-xl hover:bg-white/5 text-gold/60 hover:text-gold active:scale-90 border border-transparent transition-all whitespace-nowrap"
+            >
+              {theme === 'dark' ? <Sun className="h-5 w-5 shrink-0" /> : <Moon className="h-5 w-5 shrink-0" />}
+              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              </span>
+            </button>
 
-          {/* Generate Button */}
-          <button
-            onClick={handleGenerateMinutes}
-            disabled={isLoading || !rawNotes.trim()}
-            className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white font-semibold hover:from-indigo-500 hover:to-violet-500 disabled:from-zinc-900 disabled:to-zinc-900 disabled:text-zinc-600 disabled:border disabled:border-zinc-800 disabled:cursor-not-allowed transition duration-200 active:scale-99 shadow-lg shadow-indigo-500/10 hover:shadow-indigo-500/20 flex items-center justify-center gap-2"
+            {/* Settings button with connection status indicator */}
+            <button 
+              type="button"
+              onClick={() => setIsSettingsOpen(true)} 
+              title="Integration Settings & Gemini status" 
+              className="flex items-center w-full p-3 rounded-xl hover:bg-white/5 text-gold/60 hover:text-gold active:scale-90 border border-transparent transition-all relative whitespace-nowrap"
+            >
+              <Settings className="h-5 w-5 shrink-0" />
+              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+                Settings
+              </span>
+              {/* Green connection status pulse */}
+              <span className="absolute top-2.5 left-6 flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+            </button>
+          </div>
+        </aside>
+
+        {/* Mobile Segmented Toggle */}
+        <div className="flex md:hidden bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-900 p-2 gap-2 sticky top-0 z-20 shadow-sm shrink-0">
+          <button 
+            type="button"
+            onClick={() => setMobileTab('editor')}
+            className={`flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all active:scale-95 ${
+              mobileTab === 'editor' 
+                ? 'bg-zinc-100 dark:bg-zinc-900 text-maroon dark:text-gold border border-zinc-200 dark:border-zinc-800 shadow-sm' 
+                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-350'
+            }`}
           >
-            {isLoading ? (
-              <>
-                <RefreshCw className="h-4 w-4 animate-spin text-white" />
-                <span>AI Secretary is writing minutes...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4 text-white" />
-                <span>Generate structured MoM</span>
-              </>
-            )}
+            Configure
           </button>
+          <button 
+            type="button"
+            onClick={() => setMobileTab('preview')}
+            className={`flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all active:scale-95 ${
+              mobileTab === 'preview' 
+                ? 'bg-zinc-100 dark:bg-zinc-900 text-maroon dark:text-gold border border-zinc-200 dark:border-zinc-800 shadow-sm' 
+                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-350'
+            }`}
+          >
+            MoM Preview
+          </button>
+        </div>
+
+        {/* Center Column: Active Feature Panel */}
+        <section className={`w-full md:w-[440px] h-auto md:h-full p-6 border-b md:border-b-0 md:border-r border-zinc-200 dark:border-zinc-900 bg-white dark:bg-[#101216] shrink-0 flex-col justify-between ${
+          isDrawerCollapsed ? 'hidden' : (mobileTab === 'editor' ? 'flex' : 'hidden md:flex')
+        }`}>
+          <div className="flex-1 flex flex-col min-h-0 overflow-y-auto space-y-6">
+            
+            {activeSidebarTab === 'workspace' && (
+              <div className="space-y-6 flex-1 flex flex-col min-h-0">
+                {/* Quick Test Samples */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-2">
+                    <div className="flex items-center gap-2">
+                      <FileCheck className="h-4 w-4 text-maroon dark:text-gold" />
+                      <h2 className="text-xs font-semibold uppercase tracking-wider text-maroon dark:text-gold">Quick Test Samples</h2>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {sampleFiles.slice(0, 4).map((sample, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleLoadSample(sample.fileName)}
+                        className="flex flex-col text-left p-3 rounded-lg border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 active:scale-98 transition text-[10px] group"
+                      >
+                        <span className="font-semibold text-zinc-800 dark:text-zinc-300 group-hover:text-maroon dark:group-hover:text-gold transition mb-0.5 flex items-center justify-between w-full uppercase">
+                          {sample.displayName.replace(' Meeting', '')}
+                          <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all animate-fade-in" />
+                        </span>
+                        <span className="text-[9px] text-zinc-555 dark:text-zinc-500 leading-normal truncate w-full">{sample.description}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Drag & Drop File Zone */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-900 pb-2">
+                    <Upload className="h-4 w-4 text-maroon dark:text-gold" />
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-maroon dark:text-gold">Document Upload</h2>
+                  </div>
+                  
+                  <div
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                    className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition flex flex-col items-center justify-center min-h-[90px] ${
+                      isDragActive 
+                        ? 'border-maroon bg-maroon/5 dark:border-gold dark:bg-gold/5' 
+                        : uploadedFile 
+                          ? 'border-emerald-800/80 bg-emerald-50/5 dark:bg-emerald-950/5' 
+                          : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/10'
+                    }`}
+                  >
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".docx"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+
+                    {uploading ? (
+                      <div className="flex flex-col items-center gap-1.5 text-zinc-400">
+                        <RefreshCw className="h-5 w-5 text-maroon dark:text-gold animate-spin" />
+                        <span className="text-xs font-semibold">Reading...</span>
+                      </div>
+                    ) : uploadedFile ? (
+                      <div className="flex flex-col items-center gap-1">
+                        <FileCheck className="h-5 w-5 text-emerald-400" />
+                        <span className="text-xs font-semibold text-zinc-200 truncate max-w-[200px]">{uploadedFile.name}</span>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            clearFile();
+                          }}
+                          className="mt-1 px-2.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[10px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1 transition"
+                        >
+                          <Trash2 className="h-3 w-3" /> Clear
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex flex-col items-center gap-1.5">
+                        <Upload className="h-5 w-5 text-zinc-500" />
+                        <span className="text-xs font-semibold text-zinc-550 dark:text-zinc-300">Drag & drop .docx file or click</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Raw Notes box */}
+                <div className="space-y-1.5 flex-1 flex flex-col min-h-0">
+                  <div className="flex items-center justify-between">
+                    <label htmlFor="raw-notes-input" className="text-xs font-semibold text-maroon dark:text-gold uppercase tracking-wider">Raw Unstructured Notes</label>
+                    <div className="text-[10px] text-zinc-500 font-bold font-mono">
+                      {rawNotes ? `${rawNotes.split(/\s+/).filter(Boolean).length} words` : 'Empty'}
+                    </div>
+                  </div>
+                  <textarea
+                    id="raw-notes-input"
+                    placeholder="Paste or type unorganized notes, transcripts, agenda topics, and raw details here..."
+                    value={rawNotes}
+                    onChange={(e) => setRawNotes(e.target.value)}
+                    className="w-full flex-1 min-h-[180px] p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-200 font-sans focus:outline-none focus:border-maroon focus:ring-1 focus:ring-maroon dark:focus:border-gold dark:focus:ring-gold transition resize-none placeholder-zinc-400 dark:placeholder-zinc-650 shadow-inner"
+                  />
+                </div>
+              </div>
+            )}
+
+            {activeSidebarTab === 'metadata' && (
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-900 pb-2">
+                    <Layers className="h-4 w-4 text-maroon dark:text-gold" />
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-maroon dark:text-gold">Meeting Details</h2>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-450 flex items-center gap-1.5" htmlFor="meeting-title">
+                        <FileText className="h-3 w-3" /> Meeting Title
+                      </label>
+                      <input
+                        id="meeting-title"
+                        type="text"
+                        placeholder="e.g., Q3 Planning & Budget Review"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-450 flex items-center gap-1.5" htmlFor="meeting-date">
+                        <Calendar className="h-3 w-3" /> Date & Time
+                      </label>
+                      <input
+                        id="meeting-date"
+                        type="text"
+                        placeholder="e.g., July 8, 2026 at 2:00 PM"
+                        value={date}
+                        onChange={(e) => setDate(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-450 flex items-center gap-1.5" htmlFor="meeting-chair">
+                        <User className="h-3 w-3" /> Chairperson
+                      </label>
+                      <input
+                        id="meeting-chair"
+                        type="text"
+                        placeholder="e.g., Clara Oswald (CEO)"
+                        value={chair}
+                        onChange={(e) => setChair(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-450 flex items-center gap-1.5" htmlFor="meeting-secretary">
+                        <Users className="h-3 w-3" /> Secretary / Note Taker
+                      </label>
+                      <input
+                        id="meeting-secretary"
+                        type="text"
+                        placeholder="e.g., John Smith"
+                        value={secretary}
+                        onChange={(e) => setSecretary(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Signatories Configuration Section */}
+                <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-zinc-900">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-maroon dark:text-gold" />
+                      <span className="text-xs font-semibold uppercase tracking-wider text-maroon dark:text-gold">Custom Signatories</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleAddSignatory}
+                      className="text-xxs px-2 py-0.5 rounded bg-maroon/10 hover:bg-maroon/20 text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20 font-bold transition flex items-center gap-1"
+                    >
+                      <Plus className="h-3 w-3" /> Add
+                    </button>
+                  </div>
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {signatories.map((sig, idx) => (
+                      <div key={idx} className="flex gap-2 items-center bg-zinc-50 dark:bg-zinc-900/40 p-2 rounded-lg border border-zinc-200 dark:border-zinc-900 relative group">
+                        <div className="grid grid-cols-3 gap-2 flex-1">
+                          <input
+                            type="text"
+                            placeholder="Label"
+                            className="px-2 py-1 text-[10px] rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-205 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold"
+                            value={sig.label}
+                            onChange={(e) => handleSignatoryChange(idx, 'label', e.target.value)}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Full Name"
+                            className="px-2 py-1 text-[10px] rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-205 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold"
+                            value={sig.name}
+                            onChange={(e) => handleSignatoryChange(idx, 'name', e.target.value)}
+                          />
+                          <input
+                            type="text"
+                            placeholder="Title/Role"
+                            className="px-2 py-1 text-[10px] rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-205 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold"
+                            value={sig.role}
+                            onChange={(e) => handleSignatoryChange(idx, 'role', e.target.value)}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSignatory(idx)}
+                          className="p-1 text-red-500 hover:bg-red-500/10 rounded transition active:scale-95"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeSidebarTab === 'audio' && (
+              <div className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-900 pb-2">
+                    <Mic className="h-4 w-4 text-maroon dark:text-gold" />
+                    <h2 className="text-xs font-semibold uppercase tracking-wider text-maroon dark:text-gold">Voice & Audio Transcription</h2>
+                  </div>
+                  <p className="text-xs text-zinc-555 dark:text-zinc-400 leading-relaxed">
+                    Convert speech and recordings directly to raw meeting notes text. Record live meetings via dictation or upload audio files for AI transcription.
+                  </p>
+
+                  {/* Live Recording Card */}
+                  <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-3 w-full">
+                    <div className="bg-maroon/10 p-3 rounded-full text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20">
+                      <Mic className="h-6 w-6" />
+                    </div>
+                    <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Live Meeting Dictation</span>
+                    <span className="text-[10px] text-zinc-555 dark:text-zinc-500 text-center max-w-[250px]">Dictate directly to the browser. Appends transcripts in real-time.</span>
+                    <button 
+                      type="button"
+                      onClick={toggleMicrophone} 
+                      className={`w-full py-2 px-4 rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5 ${
+                        isRecording 
+                          ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse' 
+                          : 'bg-maroon dark:bg-gold hover:bg-maroon-dark dark:hover:bg-gold-light text-gold dark:text-maroon'
+                      }`}
+                    >
+                      {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      {isRecording ? 'Stop Recording' : 'Start Recording'}
+                    </button>
+                  </div>
+
+                  {/* Audio File Upload Card */}
+                  <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-3 w-full">
+                    <div className="bg-maroon/10 p-3 rounded-full text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20">
+                      <FileAudio className="h-6 w-6" />
+                    </div>
+                    <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">AI File Transcription</span>
+                    <span className="text-[10px] text-zinc-555 dark:text-zinc-500 text-center max-w-[250px]">Upload meeting audio (MP3/WAV/M4A) to transcribe with Gemini AI.</span>
+                    <button 
+                      type="button"
+                      onClick={() => audioInputRef.current?.click()} 
+                      className="w-full py-2 px-4 rounded-xl border border-maroon text-maroon dark:text-gold font-bold text-xs hover:bg-maroon/5 dark:hover:bg-gold/10 transition flex items-center justify-center gap-1.5"
+                    >
+                      <Upload className="h-4 w-4" /> Select Audio File
+                    </button>
+                    <input
+                      ref={audioInputRef}
+                      type="file"
+                      accept="audio/*"
+                      onChange={handleAudioFileChange}
+                      className="hidden"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+
+          {/* Dashboard Footer Actions (Always Visible) */}
+          <div className="space-y-4 pt-4 border-t border-zinc-200 dark:border-zinc-900 mt-auto shrink-0 bg-transparent">
+            {/* Feedback Messages */}
+            {error && (
+              <div className="p-3 bg-red-950/30 border border-red-900/50 text-red-400 rounded-lg text-xs flex items-start gap-2.5 animate-fade-in">
+                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {success && (
+              <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 text-emerald-400 rounded-lg text-xs flex items-start gap-2.5 animate-fade-in">
+                <Check className="h-4 w-4 shrink-0 mt-0.5" />
+                <span>{success}</span>
+              </div>
+            )}
+
+            {/* Generate Button */}
+            <button
+              onClick={handleGenerateMinutes}
+              disabled={isLoading || !rawNotes.trim()}
+              className="w-full py-3 px-4 rounded-xl bg-maroon dark:bg-gold hover:bg-maroon-dark dark:hover:bg-gold-light text-gold dark:text-maroon font-bold disabled:bg-zinc-100 dark:disabled:bg-zinc-900 disabled:text-zinc-400 dark:disabled:text-zinc-650 disabled:cursor-not-allowed transition duration-200 active:scale-99 shadow-lg flex items-center justify-center gap-2 uppercase tracking-wider"
+            >
+              {isLoading ? (
+                <>
+                  <RefreshCw className="h-4 w-4 animate-spin text-gold dark:text-maroon" />
+                  <span>AI Secretary is writing minutes...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4 text-gold dark:text-maroon" />
+                  <span>Generate structured MoM</span>
+                </>
+              )}
+            </button>
+          </div>
         </section>
 
         {/* Right Panel: Live Preview & Export */}
-        <section className="w-full md:w-1/2 h-auto md:h-full flex flex-col bg-zinc-900/40 relative">
+        <section className={`flex-1 h-auto md:h-full flex flex-col bg-zinc-50 dark:bg-[#0d0e12] relative ${mobileTab === 'preview' ? 'flex' : 'hidden md:flex'}`}>
           
           {/* Header toolbar */}
-          <div className="border-b border-zinc-900 px-6 py-4 flex flex-wrap items-center justify-between gap-3 bg-zinc-950/30">
+          <div className="border-b border-zinc-200 dark:border-zinc-900 px-6 py-4 flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#101216]/50">
             {/* View Switcher Tabs */}
-            <div className="flex bg-zinc-950 p-1 rounded-lg border border-zinc-900">
+            <div className="flex bg-zinc-100 dark:bg-[#13151a] p-1 rounded-lg border border-zinc-200 dark:border-zinc-800">
               <button
                 onClick={() => setActiveTab('preview')}
                 disabled={!minutes}
                 className={`px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition ${
                   activeTab === 'preview' 
-                    ? 'bg-zinc-900 text-white shadow-sm' 
-                    : 'text-zinc-500 hover:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed'
+                    ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm border border-zinc-200/60 dark:border-zinc-800' 
+                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed'
                 }`}
               >
                 <Eye className="h-3.5 w-3.5" /> Formatted Minutes
@@ -1482,8 +2232,8 @@ export default function Home() {
                 disabled={!minutes}
                 className={`px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition ${
                   activeTab === 'edit' 
-                    ? 'bg-zinc-900 text-white shadow-sm' 
-                    : 'text-zinc-500 hover:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed'
+                    ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm border border-zinc-200/60 dark:border-zinc-800' 
+                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed'
                 }`}
               >
                 <Edit3 className="h-3.5 w-3.5" /> Edit Markdown
@@ -1495,7 +2245,7 @@ export default function Home() {
               <button
                 onClick={() => setIsSettingsOpen(true)}
                 title="Configure Google Docs integration"
-                className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-500 hover:text-indigo-400 hover:bg-zinc-800 active:scale-95 transition flex items-center gap-1.5 text-xs font-semibold"
+                className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-maroon dark:hover:text-gold hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-95 transition flex items-center gap-1.5 text-xs font-semibold"
               >
                 <Settings className="h-4 w-4" />
                 <span>GDocs Settings</span>
@@ -1504,25 +2254,25 @@ export default function Home() {
                 onClick={copyToClipboard}
                 disabled={!minutes}
                 title="Copy markdown to clipboard"
-                className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
+                className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-655 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
               >
-                {copied ? <Check className="h-4 w-4 text-emerald-400" /> : <Copy className="h-4 w-4" />}
+                {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
                 <span>Copy</span>
               </button>
               <button
                 onClick={directToGoogleDocs}
                 disabled={!minutes}
                 title="Export directly to Google Docs (copies formatted text and opens docs.new)"
-                className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold text-indigo-400 border-indigo-950 hover:bg-indigo-950/20"
+                className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-655 dark:text-zinc-400 hover:text-maroon dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold text-maroon dark:text-gold border-maroon/20 dark:border-gold/20 hover:bg-maroon/5 dark:hover:bg-gold/10"
               >
-                <FileText className="h-4 w-4 text-indigo-400" />
+                <FileText className="h-4 w-4 text-maroon dark:text-gold" />
                 <span>Docs</span>
               </button>
               <button
                 onClick={downloadMarkdown}
                 disabled={!minutes}
                 title="Download as Markdown (.md)"
-                className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
+                className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
               >
                 <Download className="h-4 w-4" />
                 <span>MD</span>
@@ -1531,7 +2281,7 @@ export default function Home() {
                 onClick={downloadPDF}
                 disabled={!minutes}
                 title="Download formatted PDF"
-                className="p-2 rounded bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
+                className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
               >
                 <FileText className="h-4 w-4" />
                 <span>PDF</span>
@@ -1572,10 +2322,59 @@ export default function Home() {
             ) : minutes ? (
               activeTab === 'preview' ? (
                 // Styled Markdown Viewer
-                <div className="prose prose-invert max-w-none prose-zinc pb-12 selection:bg-indigo-500/30">
-                  <ReactMarkdown components={markdownComponents}>
-                    {minutes}
-                  </ReactMarkdown>
+                <div className="space-y-6">
+                  {attendanceTally && (
+                    <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-255 dark:border-zinc-800 shadow-sm space-y-3">
+                       <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2">
+                        <h4 className="text-xs font-bold text-maroon dark:text-gold uppercase tracking-wider flex items-center gap-1.5">
+                          <Users className="h-4 w-4" /> Attendance Tally & Quorum Verification
+                        </h4>
+                        {(() => {
+                          const activeCount = attendanceTally.present + attendanceTally.late;
+                          const required = Math.floor(attendanceTally.total / 2) + 1;
+                          const hasQuorum = activeCount >= required;
+                          return (
+                            <span className={`text-xxs px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 border ${
+                              hasQuorum 
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
+                                : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+                            }`}>
+                              {hasQuorum ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                              {hasQuorum ? 'Quorum Declared' : 'No Quorum'} ({activeCount}/{attendanceTally.total})
+                            </span>
+                          );
+                        })()}
+                      </div>
+                      <div className="grid grid-cols-5 gap-2 text-center">
+                        <div className="bg-zinc-50 dark:bg-zinc-955 p-2 rounded-lg border border-zinc-200 dark:border-zinc-800/40">
+                          <div className="text-[10px] font-semibold text-zinc-550 dark:text-zinc-500 uppercase">Total</div>
+                          <div className="text-base font-bold text-zinc-800 dark:text-zinc-300">{attendanceTally.total}</div>
+                        </div>
+                        <div className="bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10">
+                          <div className="text-[10px] font-semibold text-emerald-500 uppercase">Present</div>
+                          <div className="text-base font-bold text-emerald-400">{attendanceTally.present}</div>
+                        </div>
+                        <div className="bg-yellow-500/5 p-2 rounded-lg border border-yellow-500/10">
+                          <div className="text-[10px] font-semibold text-yellow-550 uppercase">Late</div>
+                          <div className="text-base font-bold text-yellow-400">{attendanceTally.late}</div>
+                        </div>
+                        <div className="bg-blue-500/5 p-2 rounded-lg border border-blue-500/10">
+                          <div className="text-[10px] font-semibold text-blue-500 uppercase">Excused</div>
+                          <div className="text-base font-bold text-blue-400">{attendanceTally.excused}</div>
+                        </div>
+                        <div className="bg-red-500/5 p-2 rounded-lg border border-red-500/10">
+                          <div className="text-[10px] font-semibold text-red-550 uppercase">Absent</div>
+                          <div className="text-base font-bold text-red-400">{attendanceTally.absent}</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className={`prose ${theme === 'dark' ? 'prose-invert prose-zinc' : 'prose-slate'} max-w-none pb-12 selection:bg-maroon/20 dark:selection:bg-gold/30`}>
+                    <ReactMarkdown components={markdownComponents}>
+                      {minutes}
+                    </ReactMarkdown>
+                  </div>
                 </div>
               ) : (
                 // Raw Markdown Editor
@@ -1583,9 +2382,9 @@ export default function Home() {
                   <textarea
                     value={minutes}
                     onChange={(e) => setMinutes(e.target.value)}
-                    className="w-full flex-1 min-h-[400px] p-6 rounded-xl bg-zinc-950 border border-zinc-800 text-sm text-zinc-300 font-mono focus:outline-none focus:border-indigo-500 transition resize-none leading-relaxed"
+                    className="w-full flex-1 min-h-[400px] p-6 rounded-xl bg-white dark:bg-zinc-955 border border-zinc-205 dark:border-zinc-800 text-sm text-zinc-800 dark:text-zinc-300 font-mono focus:outline-none focus:border-maroon dark:focus:border-gold transition resize-none leading-relaxed shadow-inner"
                   />
-                  <p className="text-xxs text-zinc-500 mt-2 font-mono">
+                  <p className="text-xxs text-zinc-555 dark:text-zinc-500 mt-2 font-mono">
                     Note: Editing here updates the active preview state. Downloading or copying will export these current changes.
                   </p>
                 </div>
@@ -1593,26 +2392,26 @@ export default function Home() {
             ) : (
               // Empty State Placeholder
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                <div className="bg-zinc-950 border border-zinc-900 p-5 rounded-2xl mb-4 relative shadow-lg group hover:border-zinc-800 transition">
-                  <div className="absolute -inset-0.5 bg-gradient-to-tr from-indigo-500 to-violet-500 rounded-2xl opacity-10 blur group-hover:opacity-20 transition duration-300"></div>
-                  <FileText className="h-10 w-10 text-zinc-500 group-hover:text-indigo-400 transition" />
+                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 p-5 rounded-2xl mb-4 relative shadow-md group hover:border-zinc-350 dark:hover:border-zinc-800 transition">
+                  <div className="absolute -inset-0.5 bg-gradient-to-tr from-maroon to-gold/90 rounded-2xl opacity-5 dark:opacity-10 blur group-hover:opacity-10 dark:group-hover:opacity-20 transition duration-300"></div>
+                  <FileText className="h-10 w-10 text-zinc-400 dark:text-zinc-550 group-hover:text-maroon dark:group-hover:text-gold transition" />
                 </div>
-                <h3 className="text-base font-semibold text-zinc-300">No Minutes Generated Yet</h3>
-                <p className="text-xs text-zinc-500 max-w-sm mt-2 leading-relaxed">
+                <h3 className="text-base font-semibold text-zinc-700 dark:text-zinc-300">No Minutes Generated Yet</h3>
+                <p className="text-xs text-zinc-550 dark:text-zinc-500 max-w-sm mt-2 leading-relaxed">
                   Provide meeting notes on the left panel or click one of the quick test sample buttons to generate your structured meeting minutes.
                 </p>
 
                 <div className="mt-8 grid grid-cols-1 gap-3 max-w-xs text-left w-full">
-                  <div className="flex items-center gap-3 text-xs text-zinc-400">
-                    <span className="h-5 w-5 rounded-full bg-zinc-950 border border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">1</span>
+                  <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                    <span className="h-5 w-5 rounded-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">1</span>
                     <span>Fill meeting metadata</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-zinc-400">
-                    <span className="h-5 w-5 rounded-full bg-zinc-950 border border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">2</span>
+                  <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                    <span className="h-5 w-5 rounded-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">2</span>
                     <span>Upload .docx file or write raw notes</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-zinc-400">
-                    <span className="h-5 w-5 rounded-full bg-zinc-950 border border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">3</span>
+                  <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                    <span className="h-5 w-5 rounded-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">3</span>
                     <span>Click "Generate structured MoM"</span>
                   </div>
                 </div>
