@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full dark">
+<html lang="en" class="h-full">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -106,7 +106,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-zinc-100 dark:bg-[#0c0506] text-gray-800 dark:text-cream flex flex-col antialiased selection:bg-maroon/20 dark:selection:bg-gold/30 transition-colors duration-300">
+<body class="min-h-screen bg-[#fafafa] dark:bg-[#0c0506] text-zinc-900 dark:text-cream flex flex-col antialiased selection:bg-red-500/10 dark:selection:bg-red-500/20 transition-colors duration-300">
 
     <!-- Settings Modal Dialog -->
     <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm hidden">
@@ -345,24 +345,24 @@
     <main class="flex-1 flex flex-col md:flex-row md:h-screen md:overflow-hidden bg-zinc-150 dark:bg-[#0c0506]">
         
         <!-- Far-Left Navigation Sidebar (w-16 Default, hover expands to w-56 with text names) -->
-        <aside class="w-full md:w-16 hover:md:w-56 bg-maroon dark:bg-[#150709] border-b md:border-b-0 md:border-r border-white/10 dark:border-white/5 flex md:flex-col items-center justify-around md:justify-start py-3 md:py-6 gap-3 md:gap-6 shrink-0 z-30 shadow-lg md:h-screen md:min-h-screen group transition-all duration-300 ease-in-out overflow-hidden px-3">
+        <aside class="w-full md:w-16 hover:md:w-56 bg-white dark:bg-[#150709] border-b md:border-b-0 md:border-r border-zinc-200 dark:border-white/5 flex md:flex-col items-center justify-around md:justify-start py-3 md:py-6 gap-3 md:gap-6 shrink-0 z-30 shadow-sm md:h-screen md:min-h-screen group transition-all duration-300 ease-in-out overflow-hidden px-3">
             <!-- Top Logo -->
-            <div class="hidden md:flex items-center w-full bg-white/10 p-2.5 rounded-xl border border-white/10 animate-pulse mb-2 whitespace-nowrap">
-                <i data-lucide="sparkles" class="h-5 w-5 text-gold shrink-0"></i>
-                <span class="ml-3 text-xs font-bold font-outfit tracking-wide text-gold opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden uppercase">SSG PORTAL</span>
+            <div class="hidden md:flex items-center w-full bg-zinc-50 dark:bg-white/10 p-2.5 rounded-xl border border-zinc-200 dark:border-white/10 mb-2 whitespace-nowrap">
+                <i data-lucide="sparkles" class="h-5 w-5 text-red-600 shrink-0"></i>
+                <span class="ml-3 text-xs font-bold font-outfit tracking-wide text-zinc-900 dark:text-zinc-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden uppercase">SSG <span class="text-red-600">AI</span></span>
             </div>
 
             <!-- Middle Navigation Buttons -->
             <div class="flex md:flex-col gap-3 md:gap-5 w-full">
-                <button id="nav-workspace" onclick="setActiveFeatureTab('workspace')" title="Workspace & Raw Notes" class="flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-white/10 active:scale-90 text-gold bg-white/10 shadow-inner whitespace-nowrap">
+                <button id="nav-workspace" onclick="setActiveFeatureTab('workspace')" title="Workspace & Raw Notes" class="flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-white/10 active:scale-90 text-red-700 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 shadow-sm whitespace-nowrap">
                     <i data-lucide="home" class="h-5 w-5 shrink-0"></i>
                     <span class="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">Workspace</span>
                 </button>
-                <button id="nav-metadata" onclick="setActiveFeatureTab('metadata')" title="Meeting Metadata & Signatories" class="flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-white/10 active:scale-90 text-gold/60 hover:text-gold border border-transparent whitespace-nowrap">
+                <button id="nav-metadata" onclick="setActiveFeatureTab('metadata')" title="Meeting Metadata & Signatories" class="flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-white/10 active:scale-90 text-zinc-400 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 border border-transparent whitespace-nowrap">
                     <i data-lucide="user-check" class="h-5 w-5 shrink-0"></i>
                     <span class="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">Meeting Info</span>
                 </button>
-                <button id="nav-audio" onclick="setActiveFeatureTab('audio')" title="Audio Transcription & Dictation" class="flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-white/10 active:scale-90 text-gold/60 hover:text-gold border border-transparent whitespace-nowrap">
+                <button id="nav-audio" onclick="setActiveFeatureTab('audio')" title="Audio Transcription & Dictation" class="flex items-center w-full p-3 rounded-xl transition-all duration-200 hover:bg-zinc-100 dark:hover:bg-white/10 active:scale-90 text-zinc-400 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 border border-transparent whitespace-nowrap">
                     <i data-lucide="mic" class="h-5 w-5 shrink-0"></i>
                     <span class="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">Audio & Voice</span>
                 </button>
@@ -372,20 +372,20 @@
             <div class="flex md:flex-col items-center gap-3 md:gap-5 mt-auto w-full">
                 <!-- Collapse/Expand Input Panel Button (Desktop Only) -->
                 <button id="btn-collapse" onclick="toggleDrawerCollapse()" title="Collapse Input Panel" 
-                        class="hidden md:flex items-center w-full p-3 rounded-xl hover:bg-white/10 text-gold/60 hover:text-gold active:scale-90 transition-all whitespace-nowrap">
+                        class="hidden md:flex items-center w-full p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 active:scale-90 transition-all whitespace-nowrap">
                     <i id="collapse-icon" data-lucide="chevron-left" class="h-5 w-5 shrink-0"></i>
                     <span class="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">Collapse Panel</span>
                 </button>
 
                 <!-- Theme Toggle Button -->
                 <button id="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode" 
-                        class="flex items-center w-full p-3 rounded-xl hover:bg-white/10 text-gold/60 hover:text-gold active:scale-90 transition-all whitespace-nowrap">
+                        class="flex items-center w-full p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 active:scale-90 transition-all whitespace-nowrap">
                     <i id="theme-toggle-icon" data-lucide="moon" class="h-5 w-5 shrink-0"></i>
                     <span class="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">Theme Mode</span>
                 </button>
 
                 <!-- Settings Button with Status Pulse -->
-                <button onclick="toggleSettingsModal(true)" title="Integration Settings & AI Status" class="flex items-center w-full p-3 rounded-xl hover:bg-white/10 text-gold/60 hover:text-gold active:scale-90 transition-all relative whitespace-nowrap">
+                <button onclick="toggleSettingsModal(true)" title="Integration Settings & AI Status" class="flex items-center w-full p-3 rounded-xl hover:bg-zinc-100 dark:hover:bg-white/10 text-zinc-400 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100 active:scale-90 transition-all relative whitespace-nowrap">
                     <i data-lucide="settings" class="h-5 w-5 shrink-0"></i>
                     <span class="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">Settings</span>
                     <!-- Green pulse indicator signifying 'Client-Side AI Ready' -->
@@ -397,13 +397,13 @@
             </div>
         </aside>
         <!-- Mobile Segmented Toggle -->
-        <div class="flex md:hidden bg-maroon dark:bg-[#1a0000] border-b border-white/20 dark:border-white/10 p-2 gap-2 sticky top-0 z-20 shadow-sm shrink-0 w-full">
+        <div class="flex md:hidden bg-white dark:bg-[#1a0000] border-b border-zinc-200 dark:border-white/10 p-2 gap-2 sticky top-0 z-20 shadow-sm shrink-0 w-full">
             <button type="button" id="mobile-btn-editor" onclick="setMobileTab('editor')"
-                    class="flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all active:scale-95 bg-white/10 text-gold border border-white/10 shadow-sm">
+                    class="flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all active:scale-95 bg-zinc-900 text-white shadow-sm">
                 Configure
             </button>
             <button type="button" id="mobile-btn-preview" onclick="setMobileTab('preview')"
-                    class="flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all active:scale-95 text-gold/60 hover:text-gold">
+                    class="flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all active:scale-95 text-zinc-500 hover:text-zinc-900">
                 MoM Preview
             </button>
         </div>
@@ -620,9 +620,9 @@
 
                 <!-- Generate Button -->
                 <button id="btn-generate" onclick="handleGenerateMinutes()" 
-                        class="w-full py-3 px-4 rounded-xl bg-maroon dark:bg-gold hover:bg-maroon-dark dark:hover:bg-gold-light text-gold dark:text-maroon font-bold shadow-lg transition-all duration-350 active:scale-99 hover:-translate-y-0.5 uppercase tracking-wider flex items-center justify-center gap-2">
-                    <i data-lucide="sparkles" class="h-4 w-4 text-gold dark:text-maroon"></i>
-                    <span>Generate structured MoM</span>
+                        class="w-full py-3 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-medium shadow-sm transition-all duration-200 active:scale-99 flex items-center justify-center gap-2">
+                    <i data-lucide="sparkles" class="h-4 w-4 text-red-500"></i>
+                    <span class="text-sm font-semibold">Generate structured MoM</span>
                 </button>
             </div>
         </section>
@@ -903,7 +903,7 @@ Next day, August 19, 2025, the date of the CTU Nite, it was discussed that the c
             document.getElementById('meeting-date').value = dateStr;
 
             // Load theme configuration
-            const savedTheme = localStorage.getItem('mom_theme') || 'dark';
+            const savedTheme = localStorage.getItem('mom_theme') || 'light';
             if (savedTheme === 'dark') {
                 document.documentElement.classList.add('dark');
                 updateThemeIcon(true);
@@ -1327,14 +1327,14 @@ Crucially, you must preserve 100% of the facts, discussions, decisions, suggesti
             const btn = document.getElementById('btn-generate');
             if (loading) {
                 btn.setAttribute('disabled', 'true');
-                btn.innerHTML = `<i data-lucide="refresh-cw" class="h-4 w-4 animate-spin text-maroon dark:text-maroon"></i><span>AI Secretary is writing minutes...</span>`;
+                btn.innerHTML = `<i data-lucide="refresh-cw" class="h-4 w-4 animate-spin text-red-500"></i><span>AI Secretary is writing minutes...</span>`;
                 document.getElementById('skeleton-loader').classList.remove('hidden');
                 document.getElementById('empty-state').classList.add('hidden');
                 document.getElementById('preview-container').classList.add('hidden');
                 document.getElementById('edit-container').classList.add('hidden');
             } else {
                 btn.removeAttribute('disabled');
-                btn.innerHTML = `<i data-lucide="sparkles" class="h-4 w-4 text-gold dark:text-maroon"></i><span>Generate structured MoM</span>`;
+                btn.innerHTML = `<i data-lucide="sparkles" class="h-4 w-4 text-red-500"></i><span>Generate structured MoM</span>`;
                 document.getElementById('skeleton-loader').classList.add('hidden');
             }
             lucide.createIcons();
@@ -2744,12 +2744,12 @@ Crucially, you must preserve 100% of the facts, discussions, decisions, suggesti
                 const navEl = document.getElementById(`nav-${pane}`);
                 if (pane === tabName) {
                     paneEl.classList.remove('hidden');
-                    navEl.classList.add('bg-white/10', 'shadow-inner', 'text-gold');
-                    navEl.classList.remove('text-gold/60');
+                    navEl.classList.add('bg-red-50', 'text-red-700', 'border-red-200', 'dark:bg-red-950/30', 'dark:text-white', 'dark:border-red-900/50');
+                    navEl.classList.remove('text-zinc-400', 'border-transparent');
                 } else {
                     paneEl.classList.add('hidden');
-                    navEl.classList.remove('bg-white/10', 'shadow-inner', 'text-gold');
-                    navEl.classList.add('text-gold/60');
+                    navEl.classList.remove('bg-red-50', 'text-red-700', 'border-red-200', 'dark:bg-red-950/30', 'dark:text-white', 'dark:border-red-900/50');
+                    navEl.classList.add('text-zinc-400', 'border-transparent');
                 }
             });
             lucide.createIcons();
@@ -2768,20 +2768,20 @@ Crucially, you must preserve 100% of the facts, discussions, decisions, suggesti
                 previewCol.classList.add('hidden');
                 previewCol.classList.remove('flex');
                 
-                btnEditor.classList.add('bg-white/10', 'text-gold', 'border', 'border-white/10', 'shadow-sm');
-                btnEditor.classList.remove('text-gold/60');
-                btnPreview.classList.remove('bg-white/10', 'text-gold', 'border', 'border-white/10', 'shadow-sm');
-                btnPreview.classList.add('text-gold/60');
+                btnEditor.classList.add('bg-zinc-900', 'text-white');
+                btnEditor.classList.remove('text-zinc-500');
+                btnPreview.classList.remove('bg-zinc-900', 'text-white');
+                btnPreview.classList.add('text-zinc-500');
             } else {
                 editorCol.classList.add('hidden');
                 editorCol.classList.remove('flex');
                 previewCol.classList.remove('hidden');
                 previewCol.classList.add('flex');
                 
-                btnPreview.classList.add('bg-white/10', 'text-gold', 'border', 'border-white/10', 'shadow-sm');
-                btnPreview.classList.remove('text-gold/60');
-                btnEditor.classList.remove('bg-white/10', 'text-gold', 'border', 'border-white/10', 'shadow-sm');
-                btnEditor.classList.add('text-gold/60');
+                btnPreview.classList.add('bg-zinc-900', 'text-white');
+                btnPreview.classList.remove('text-zinc-500');
+                btnEditor.classList.remove('bg-zinc-900', 'text-white');
+                btnEditor.classList.add('text-zinc-500');
             }
             lucide.createIcons();
         }
