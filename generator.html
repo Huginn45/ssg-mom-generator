@@ -116,52 +116,52 @@
             </button>
 
             <div class="space-y-1">
-                <h2 class="text-lg font-bold text-maroon dark:text-gold flex items-center gap-2">
-                    <i data-lucide="settings" class="h-5 w-5"></i>
+                <h2 class="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="settings" class="h-4 w-4 text-red-600"></i>
                     Workspace & Integration Settings
                 </h2>
-                <p class="text-xs text-gray-500 dark:text-cream/70">
+                <p class="text-xs text-zinc-500 dark:text-zinc-400">
                     Configure your Gemini API key and optional Google Docs integrations. All keys are stored locally on your device.
                 </p>
             </div>
 
-            <div class="space-y-6 divide-y divide-gray-250 dark:divide-white/10">
+            <div class="space-y-6 divide-y divide-zinc-200 dark:divide-white/10">
                 <!-- Gemini Config -->
                 <div class="space-y-3">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-semibold text-maroon dark:text-gold">Gemini AI Configuration (Required for generation)</h3>
-                        <span class="text-xxs px-2 py-0.5 rounded bg-maroon/10 dark:bg-gold/10 text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20 font-mono">API Connection</span>
+                        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Gemini AI Configuration (Required for generation)</h3>
+                        <span class="text-xxs px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 font-mono">API Connection</span>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-cream/70 leading-normal">
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">
                         To generate minutes of meeting directly in your browser, enter your Gemini API Key. You can get a free key from Google AI Studio.
                     </p>
                     <div class="space-y-1.5">
-                        <label class="text-xs text-gray-600 dark:text-cream/80 font-medium" for="settings-gemini-key">Gemini API Key</label>
+                        <label class="text-xs text-zinc-600 dark:text-zinc-300 font-medium" for="settings-gemini-key">Gemini API Key</label>
                         <input id="settings-gemini-key" type="password" placeholder="Enter AI Studio API Key (AIzaSy...)" 
-                               class="w-full px-3.5 py-2.5 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-white/10 text-sm text-gray-950 dark:text-cream placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-maroon dark:focus:border-gold transition" />
+                               class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 dark:focus:border-red-500 transition" />
                     </div>
                 </div>
 
                 <!-- Method A -->
                 <div class="space-y-3 pt-6">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-semibold text-maroon dark:text-gold">Method A: Google Apps Script (Recommended - No Cloud Setup)</h3>
-                        <span class="text-xxs px-2 py-0.5 rounded bg-maroon/10 dark:bg-gold/10 text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20 font-mono">Zero Config</span>
+                        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Method A: Google Apps Script (Recommended - No Cloud Setup)</h3>
+                        <span class="text-xxs px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 font-mono">Zero Config</span>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-cream/70 leading-normal">
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">
                         Creates documents directly in your Google Drive using a simple Apps Script. No Google Cloud APIs or console setup required.
                     </p>
                     <div class="space-y-1.5">
-                        <label class="text-xs text-gray-600 dark:text-cream/80 font-medium" for="settings-script-url">Google Apps Script Web App URL</label>
+                        <label class="text-xs text-zinc-600 dark:text-zinc-300 font-medium" for="settings-script-url">Google Apps Script Web App URL</label>
                         <input id="settings-script-url" type="text" placeholder="https://script.google.com/macros/s/..." 
-                               class="w-full px-3.5 py-2.5 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-white/10 text-sm text-gray-950 dark:text-cream placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-maroon dark:focus:border-gold transition" />
+                               class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 dark:focus:border-red-500 transition" />
                     </div>
 
                     <!-- Steps Accordion -->
-                    <div class="bg-gray-100 dark:bg-black/35 rounded-xl p-4 border border-gray-250 dark:border-white/5 space-y-3 text-xs">
-                        <span class="font-semibold text-gray-700 dark:text-cream/95">Quick 3-Minute Setup Instructions:</span>
-                        <ol class="list-decimal pl-4 space-y-2 text-gray-550 dark:text-cream/70">
-                            <li>Go to <a href="https://script.google.com" target="_blank" rel="noreferrer" class="text-maroon dark:text-gold hover:underline">script.google.com</a> and click <strong>New Project</strong>.</li>
+                    <div class="bg-zinc-50 dark:bg-zinc-900/60 rounded-xl p-4 border border-zinc-200 dark:border-white/5 space-y-3 text-xs">
+                        <span class="font-semibold text-zinc-800 dark:text-zinc-200">Quick 3-Minute Setup Instructions:</span>
+                        <ol class="list-decimal pl-4 space-y-2 text-zinc-600 dark:text-zinc-400">
+                            <li>Go to <a href="https://script.google.com" target="_blank" rel="noreferrer" class="text-red-700 dark:text-red-400 hover:underline font-medium">script.google.com</a> and click <strong>New Project</strong>.</li>
                             <li>
                                 Replace the entire script with this code:
                                 <div class="relative mt-1.5">
@@ -300,28 +300,28 @@
                 <!-- Method B -->
                 <div class="space-y-3 pt-6">
                     <div class="flex items-center justify-between">
-                        <h3 class="text-sm font-semibold text-maroon dark:text-gold">Method B: Google Drive API (OAuth Consent Screen)</h3>
-                        <span class="text-xxs px-2 py-0.5 rounded bg-maroon/10 dark:bg-gold/10 text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20 font-mono">Standard OAuth</span>
+                        <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Method B: Google Drive API (OAuth Consent Screen)</h3>
+                        <span class="text-xxs px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300 border border-zinc-200 dark:border-zinc-700 font-mono">Standard OAuth</span>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-cream/70 leading-normal">
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">
                         Authorizes credentials natively in the browser. Requires creating a Google Cloud OAuth Client ID with Authorized JavaScript Origins set to your origin.
                     </p>
-                    <div class="p-3 py-2.5 rounded-xl border border-yellow-500/20 bg-yellow-550/10 text-yellow-750 dark:text-yellow-450 text-xs leading-normal">
+                    <div class="p-3 py-2.5 rounded-xl border border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-xs leading-normal">
                         <strong>Important:</strong> Google OAuth (Method B) does not support direct local file access (URLs starting with <code>file://</code>). Since this generator is opened directly as a file, please use <strong>Method A (Google Apps Script Web App)</strong> instead, which works perfectly for local/offline files!
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-1.5">
-                            <label class="text-xs text-gray-650 dark:text-cream/80 font-medium" for="settings-client-id">Google Client ID</label>
+                            <label class="text-xs text-zinc-600 dark:text-zinc-300 font-medium" for="settings-client-id">Google Client ID</label>
                             <input id="settings-client-id" type="text" placeholder="e.g. 12345-abcde.apps.googleusercontent.com" 
-                                   class="w-full px-3.5 py-2.5 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-white/10 text-sm text-gray-950 dark:text-cream placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:border-maroon dark:focus:border-gold transition" />
+                                   class="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 dark:focus:border-red-500 transition" />
                         </div>
                         <div class="space-y-1.5 flex flex-col justify-end">
-                            <div id="oauth-status-container" class="hidden px-3.5 py-2.5 rounded-xl border border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-450 text-xs flex items-center justify-between font-bold">
+                            <div id="oauth-status-container" class="hidden px-3.5 py-2.5 rounded-xl border border-green-500/20 bg-green-500/10 text-green-700 dark:text-green-400 text-xs flex items-center justify-between font-bold">
                                 <span>Signed in to Google</span>
                                 <i data-lucide="check" class="h-4 w-4"></i>
                             </div>
-                            <button id="btn-oauth-signin" onclick="handleGoogleSignIn()" class="w-full py-2.5 px-3.5 rounded-xl border border-gray-300 dark:border-white/10 hover:border-maroon dark:hover:border-gold bg-white/50 dark:bg-black/50 text-xs font-semibold text-gray-800 dark:text-cream active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-2">
-                                <i data-lucide="sparkles" class="h-3.5 w-3.5 text-maroon dark:text-gold"></i>
+                            <button id="btn-oauth-signin" onclick="handleGoogleSignIn()" class="w-full py-2.5 px-3.5 rounded-xl border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 bg-white dark:bg-zinc-900 text-xs font-semibold text-zinc-800 dark:text-zinc-200 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-2">
+                                <i data-lucide="sparkles" class="h-3.5 w-3.5 text-red-600"></i>
                                 <span>Sign in with Google</span>
                             </button>
                         </div>
@@ -330,11 +330,11 @@
             </div>
 
             <!-- Actions -->
-            <div class="flex items-center justify-end gap-3 border-t border-gray-200 dark:border-white/10 pt-4">
-                <button onclick="toggleSettingsModal(false)" class="px-4 py-2 rounded-xl bg-gray-150 dark:bg-black/40 border border-gray-300 dark:border-white/10 hover:bg-gray-200 dark:hover:bg-black/60 text-xs font-semibold text-gray-600 dark:text-cream/70 transition">
+            <div class="flex items-center justify-end gap-3 border-t border-zinc-200 dark:border-white/10 pt-4">
+                <button onclick="toggleSettingsModal(false)" class="px-4 py-2 rounded-xl bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-xs font-semibold text-zinc-700 dark:text-zinc-300 transition">
                     Cancel
                 </button>
-                <button onclick="saveSettings()" class="px-4 py-2 rounded-xl bg-maroon dark:bg-gold hover:bg-maroon-dark dark:hover:bg-gold-light text-gold dark:text-maroon text-xs font-bold uppercase tracking-wider shadow-lg transition-all active:scale-95">
+                <button onclick="saveSettings()" class="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold uppercase tracking-wider shadow transition-all active:scale-95">
                     Save Integration Settings
                 </button>
             </div>
@@ -412,150 +412,140 @@
         <section id="col-editor" class="w-full md:w-[440px] h-auto md:h-full md:overflow-y-auto p-6 border-b md:border-b-0 md:border-r border-gray-200 dark:border-white/5 bg-white dark:bg-[#12090a] shrink-0 flex flex-col justify-between">
             <div class="flex-1 flex flex-col min-h-0">
                 
-                <!-- Pane: Workspace (Samples, Doc Upload, Raw Notes Box) -->
-                <div id="pane-workspace" class="space-y-6 flex-1 flex flex-col min-h-0">
-                    <!-- Quick Test Samples -->
-                    <div class="space-y-3">
-                        <div class="flex items-center justify-between border-b border-white/30 dark:border-white/10 pb-2">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="file-check" class="h-4 w-4 text-maroon dark:text-gold"></i>
-                                <h2 class="text-xs font-bold uppercase tracking-wider text-maroon dark:text-gold font-outfit">Quick Test Samples</h2>
+                <!-- Pane: Workspace (Granola Meeting Recipes, Doc Upload, Shorthand Notes) -->
+                <div id="pane-workspace" class="space-y-4 flex-1 flex flex-col min-h-0">
+                    
+                    <!-- Meeting Recipes (Granola AI) -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between border-b border-zinc-200 dark:border-white/10 pb-2">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="sparkles" class="h-3.5 w-3.5 text-red-600"></i>
+                                <h2 class="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400 font-outfit">Meeting Recipes (Granola AI)</h2>
                             </div>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 font-medium">1-Click Presets</span>
                         </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button onclick="handleLoadSample('To be edited (1).docx')" 
-                                    class="flex flex-col text-left p-3 rounded-xl border border-white/40 dark:border-white/10 bg-white/50 dark:bg-black/30 hover:bg-white/80 dark:hover:bg-black/55 hover:border-maroon/40 dark:hover:border-gold/45 active:scale-98 transition text-[10px] group shadow-sm">
-                                <span class="font-bold text-gray-800 dark:text-cream group-hover:text-maroon dark:group-hover:text-gold transition mb-0.5 flex items-center justify-between w-full font-outfit uppercase">
-                                    Board Meeting
-                                    <i data-lucide="arrow-right" class="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all"></i>
-                                </span>
-                                <span class="text-[9px] text-gray-550 dark:text-cream/55 leading-normal truncate w-full">Short board meeting notes.</span>
+                        
+                        <!-- Recipe Pill Buttons -->
+                        <div class="grid grid-cols-3 gap-2">
+                            <button id="recipe-btn-legislative" onclick="handleApplyRecipe('legislative')" 
+                                    class="py-2 px-2 rounded-lg text-xs font-semibold border transition text-center bg-zinc-900 text-white border-zinc-900 shadow-sm flex items-center justify-center gap-1">
+                                <span>🏛️ Legislative</span>
                             </button>
-
-                            <button onclick="handleLoadSample('1st Legislative Meeting 07-18-26.docx')" 
-                                    class="flex flex-col text-left p-3 rounded-xl border border-white/40 dark:border-white/10 bg-white/50 dark:bg-black/30 hover:bg-white/80 dark:hover:bg-black/55 hover:border-maroon/40 dark:hover:border-gold/45 active:scale-98 transition text-[10px] group shadow-sm">
-                                <span class="font-bold text-gray-800 dark:text-cream group-hover:text-maroon dark:group-hover:text-gold transition mb-0.5 flex items-center justify-between w-full font-outfit uppercase">
-                                    1st Legislative
-                                    <i data-lucide="arrow-right" class="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all"></i>
-                                </span>
-                                <span class="text-[9px] text-gray-550 dark:text-cream/55 leading-normal truncate w-full">Legislative minutes cache.</span>
+                            <button id="recipe-btn-executive" onclick="handleApplyRecipe('executive')" 
+                                    class="py-2 px-2 rounded-lg text-xs font-medium border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 text-zinc-600 dark:text-zinc-300 bg-white dark:bg-black/30 transition text-center flex items-center justify-center gap-1">
+                                <span>📋 Executive</span>
                             </button>
-
-                            <button onclick="handleLoadSample('SSG-Meeting-Minutes-July6.docx')" 
-                                    class="flex flex-col text-left p-3 rounded-xl border border-white/40 dark:border-white/10 bg-white/50 dark:bg-black/30 hover:bg-white/80 dark:hover:bg-black/55 hover:border-maroon/40 dark:hover:border-gold/45 active:scale-98 transition text-[10px] group shadow-sm">
-                                <span class="font-bold text-gray-800 dark:text-cream group-hover:text-maroon dark:group-hover:text-gold transition mb-0.5 flex items-center justify-between w-full font-outfit uppercase">
-                                    July 6 Meeting
-                                    <i data-lucide="arrow-right" class="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all"></i>
-                                </span>
-                                <span class="text-[9px] text-gray-550 dark:text-cream/55 leading-normal truncate w-full">SSG Council notes.</span>
+                            <button id="recipe-btn-special" onclick="handleApplyRecipe('special')" 
+                                    class="py-2 px-2 rounded-lg text-xs font-medium border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 text-zinc-600 dark:text-zinc-300 bg-white dark:bg-black/30 transition text-center flex items-center justify-center gap-1">
+                                <span>🚨 Special</span>
                             </button>
-                            
-                            <button onclick="handleLoadSample('MINUTES OF THE 1st EARLY REGULAR MEETING ON THURSDAY, JANUARY 08, 2026..docx')" 
-                                    class="flex flex-col text-left p-3 rounded-xl border border-white/40 dark:border-white/10 bg-white/50 dark:bg-black/30 hover:bg-white/80 dark:hover:bg-black/55 hover:border-maroon/40 dark:hover:border-gold/45 active:scale-98 transition text-[10px] group shadow-sm">
-                                <span class="font-bold text-gray-800 dark:text-cream group-hover:text-maroon dark:group-hover:text-gold transition mb-0.5 flex items-center justify-between w-full font-outfit uppercase">
-                                    1st Regular
-                                    <i data-lucide="arrow-right" class="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all"></i>
-                                </span>
-                                <span class="text-[9px] text-gray-550 dark:text-cream/55 leading-normal truncate w-full">Large organization minutes.</span>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-zinc-500">
+                            <p id="recipe-description" class="italic truncate mr-2">
+                                Standard SSG Parliamentary Session with Formal Motions & Agendas
+                            </p>
+                            <button onclick="handleLoadSample('To be edited (1).docx')" class="shrink-0 text-red-700 hover:text-red-800 underline font-medium text-[10px]">
+                                Sample .docx
                             </button>
                         </div>
                     </div>
 
                     <!-- Raw Notes Upload & Text Area -->
-                    <div class="space-y-4 flex-1 flex flex-col min-h-0">
-                        <div class="flex items-center justify-between border-b border-white/30 dark:border-white/10 pb-2 shrink-0">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="upload" class="h-4 w-4 text-maroon dark:text-gold"></i>
-                                <h2 class="text-xs font-bold uppercase tracking-wider text-maroon dark:text-gold font-outfit">Document Upload</h2>
+                    <div class="space-y-3 flex-1 flex flex-col min-h-0">
+                        <div class="flex items-center justify-between border-b border-zinc-200 dark:border-white/10 pb-2 shrink-0">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="edit-3" class="h-3.5 w-3.5 text-red-600"></i>
+                                <h2 class="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400 font-outfit">Shorthand Meeting Notes</h2>
                             </div>
-                            <div id="word-count" class="text-[10px] text-gray-500 dark:text-cream/70 font-bold font-mono">Empty</div>
+                            <div id="word-count" class="text-[10px] text-zinc-500 dark:text-zinc-400 font-mono">Empty</div>
                         </div>
 
                         <!-- Drag & Drop File Zone -->
                         <div id="drop-zone" onclick="document.getElementById('file-input').click()" 
-                             class="border-2 border-dashed border-gray-300 dark:border-white/20 hover:border-maroon dark:hover:border-gold bg-white/30 dark:bg-black/30 rounded-xl p-4 text-center cursor-pointer transition flex flex-col items-center justify-center min-h-[100px] shrink-0">
+                             class="border border-dashed border-zinc-300 dark:border-white/15 hover:border-red-600 bg-zinc-50/50 dark:bg-black/20 rounded-xl p-2.5 text-center cursor-pointer transition flex items-center justify-center shrink-0">
                             <input id="file-input" type="file" accept=".docx" class="hidden" onchange="handleFileChange(event)" />
 
-                            <div id="upload-idle" class="flex flex-col items-center gap-1.5">
-                                <i data-lucide="upload" class="h-5 w-5 text-maroon dark:text-gold"></i>
-                                <span class="text-xs font-bold text-gray-750 dark:text-cream">Drag & drop .docx file or click</span>
+                            <div id="upload-idle" class="flex items-center gap-2 text-zinc-500 hover:text-zinc-800 text-xs">
+                                <i data-lucide="upload" class="h-4 w-4 text-red-600"></i>
+                                <span>Drop <strong class="text-zinc-800 dark:text-zinc-200">.docx</strong> file or click to browse</span>
                             </div>
 
-                            <div id="upload-loading" class="hidden flex flex-col items-center gap-1.5 text-gray-500 dark:text-cream/50">
-                                <i data-lucide="refresh-cw" class="h-5 w-5 text-maroon dark:text-gold animate-spin"></i>
-                                <span class="text-xs font-bold text-maroon dark:text-gold">Reading document...</span>
+                            <div id="upload-loading" class="hidden flex items-center gap-2 text-zinc-500 text-xs">
+                                <i data-lucide="refresh-cw" class="h-4 w-4 text-red-600 animate-spin"></i>
+                                <span class="font-medium text-red-700">Reading document...</span>
                             </div>
 
-                            <div id="upload-success" class="hidden flex flex-col items-center gap-1">
-                                <i data-lucide="file-check" class="h-5 w-5 text-green-500"></i>
-                                <span id="uploaded-filename" class="text-xs font-bold text-gray-800 dark:text-cream truncate max-w-[200px]">file.docx</span>
-                                <span id="uploaded-filesize" class="text-[10px] text-gray-500 dark:text-cream/50">Size: 0 KB</span>
-                                <button onclick="clearFile(event)" class="mt-1 px-2.5 py-0.5 rounded bg-white/70 dark:bg-black/50 border border-gray-300 dark:border-white/10 hover:bg-gray-150 text-[10px] text-gray-650 flex items-center gap-1">
+                            <div id="upload-success" class="hidden flex items-center justify-between w-full px-2">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="file-check" class="h-4 w-4 text-green-600"></i>
+                                    <span id="uploaded-filename" class="text-xs font-semibold text-zinc-800 dark:text-white truncate max-w-[160px]">file.docx</span>
+                                    <span id="uploaded-filesize" class="text-[10px] text-zinc-400">Size: 0 KB</span>
+                                </div>
+                                <button onclick="clearFile(event)" class="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 text-[10px] text-zinc-600 flex items-center gap-1">
                                     <i data-lucide="trash-2" class="h-3 w-3 text-red-500"></i> Clear
                                 </button>
                             </div>
                         </div>
 
                         <!-- Raw Notes Area -->
-                        <div class="space-y-1.5 flex-1 flex flex-col min-h-0">
-                            <label for="raw-notes-input" class="text-xs font-bold text-gray-600 dark:text-cream/80 uppercase tracking-wider shrink-0">Raw Unstructured Notes</label>
-                            <textarea id="raw-notes-input" oninput="updateWordCount()" placeholder="Paste or type unorganized notes, transcripts, agenda topics, and raw details here..." 
-                                      class="w-full flex-1 min-h-[180px] p-3 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-white/10 text-xs text-gray-900 dark:text-cream placeholder-gray-400 focus:outline-none focus:border-maroon dark:focus:border-gold transition font-sans resize-none"></textarea>
+                        <div class="space-y-1 flex-1 flex flex-col min-h-0">
+                            <textarea id="raw-notes-input" oninput="updateWordCount()" placeholder="Type shorthand bullet points, paste transcripts, or click a Meeting Recipe above..." 
+                                      class="w-full flex-1 min-h-[220px] p-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition font-mono leading-relaxed resize-none shadow-inner"></textarea>
                         </div>
                     </div>
                 </div>
 
                 <!-- Pane: Metadata & Signatories -->
-                <div id="pane-metadata" class="hidden space-y-6">
+                <div id="pane-metadata" class="hidden space-y-5">
                     <div class="space-y-4">
-                        <div class="flex items-center gap-2 border-b border-white/30 dark:border-white/10 pb-2">
-                            <i data-lucide="layers" class="h-4 w-4 text-maroon dark:text-gold"></i>
-                            <h2 class="text-xs font-bold uppercase tracking-wider text-maroon dark:text-gold font-outfit">Meeting Details</h2>
+                        <div class="flex items-center gap-2 border-b border-zinc-200 dark:border-white/10 pb-2">
+                            <i data-lucide="layers" class="h-4 w-4 text-red-600"></i>
+                            <h2 class="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400 font-outfit">Meeting Details</h2>
                         </div>
                         
                         <div class="space-y-3">
                             <div class="space-y-1">
-                                <label class="text-xs font-bold text-gray-600 dark:text-cream/80 flex items-center gap-1.5 uppercase tracking-wider" for="meeting-title">
-                                    <i data-lucide="file-text" class="h-3 w-3 text-maroon dark:text-gold"></i> Meeting Title
+                                <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider" for="meeting-title">
+                                    <i data-lucide="file-text" class="h-3 w-3 text-red-600"></i> Meeting Title
                                 </label>
                                 <input id="meeting-title" type="text" placeholder="e.g., Q3 Planning & Budget Review" 
-                                       class="w-full px-3 py-2 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-white/10 text-xs text-gray-900 dark:text-cream focus:outline-none focus:border-maroon dark:focus:border-gold transition" />
+                                       class="w-full px-3 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition" />
                             </div>
 
                             <div class="space-y-1">
-                                <label class="text-xs font-bold text-gray-600 dark:text-cream/80 flex items-center gap-1.5 uppercase tracking-wider" for="meeting-date">
-                                    <i data-lucide="calendar" class="h-3 w-3 text-maroon dark:text-gold"></i> Date & Time
+                                <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider" for="meeting-date">
+                                    <i data-lucide="calendar" class="h-3 w-3 text-red-600"></i> Date & Time
                                 </label>
-                                <input id="meeting-date" type="text" placeholder="e.g., July 8, 2026 at 2:00 PM" 
-                                       class="w-full px-3 py-2 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-white/10 text-xs text-gray-900 dark:text-cream focus:outline-none focus:border-maroon dark:focus:border-gold transition" />
+                                <input id="meeting-date" type="text" placeholder="e.g., October 16, 2026 at 2:00 PM" 
+                                       class="w-full px-3 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition" />
                             </div>
 
                             <div class="space-y-1">
-                                <label class="text-xs font-bold text-gray-600 dark:text-cream/80 flex items-center gap-1.5 uppercase tracking-wider" for="meeting-chair">
-                                    <i data-lucide="user" class="h-3 w-3 text-maroon dark:text-gold"></i> Chairperson
+                                <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider" for="meeting-chair">
+                                    <i data-lucide="user" class="h-3 w-3 text-red-600"></i> Chairperson
                                 </label>
                                 <input id="meeting-chair" type="text" placeholder="e.g., Clara Oswald (CEO)" 
-                                       class="w-full px-3 py-2 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-white/10 text-xs text-gray-900 dark:text-cream focus:outline-none focus:border-maroon dark:focus:border-gold transition" />
+                                       class="w-full px-3 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition" />
                             </div>
 
                             <div class="space-y-1">
-                                <label class="text-xs font-bold text-gray-600 dark:text-cream/80 flex items-center gap-1.5 uppercase tracking-wider" for="meeting-secretary">
-                                    <i data-lucide="users" class="h-3 w-3 text-maroon dark:text-gold"></i> Secretary / Note Taker
+                                <label class="text-xs font-semibold text-zinc-600 dark:text-zinc-300 flex items-center gap-1.5 uppercase tracking-wider" for="meeting-secretary">
+                                    <i data-lucide="users" class="h-3 w-3 text-red-600"></i> Secretary / Note Taker
                                 </label>
                                 <input id="meeting-secretary" type="text" placeholder="e.g., John Smith" 
-                                       class="w-full px-3 py-2 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-white/10 text-xs text-gray-900 dark:text-cream focus:outline-none focus:border-maroon dark:focus:border-gold transition" />
+                                       class="w-full px-3 py-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-xs text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition" />
                             </div>
                         </div>
                     </div>
 
                     <!-- Signatories Configuration -->
-                    <div class="space-y-3 pt-3 border-t border-white/20 dark:border-white/10">
+                    <div class="space-y-3 pt-3 border-t border-zinc-200 dark:border-white/10">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
-                                <i data-lucide="signature" class="h-4 w-4 text-maroon dark:text-gold"></i>
-                                <span class="text-xs font-bold uppercase tracking-wider text-maroon dark:text-gold font-outfit">Custom Signatories</span>
+                                <i data-lucide="signature" class="h-4 w-4 text-red-600"></i>
+                                <span class="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400 font-outfit">Custom Signatories</span>
                             </div>
-                            <button onclick="addSignatoryField()" class="text-[10px] px-2 py-0.5 rounded bg-maroon/10 dark:bg-gold/15 text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20 font-bold hover:bg-maroon/20 dark:hover:bg-gold/25 transition flex items-center gap-1">
+                            <button onclick="addSignatoryField()" class="text-[10px] px-2 py-0.5 rounded bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 font-semibold hover:bg-red-100 transition flex items-center gap-1">
                                 <i data-lucide="plus" class="h-3 w-3"></i> Add
                             </button>
                         </div>
@@ -566,37 +556,37 @@
                 </div>
 
                 <!-- Pane: Audio Transcription Tools -->
-                <div id="pane-audio" class="hidden space-y-6">
+                <div id="pane-audio" class="hidden space-y-5">
                     <div class="space-y-4">
-                        <div class="flex items-center gap-2 border-b border-white/30 dark:border-white/10 pb-2">
-                            <i data-lucide="mic" class="h-4 w-4 text-maroon dark:text-gold"></i>
-                            <h2 class="text-xs font-bold uppercase tracking-wider text-maroon dark:text-gold font-outfit">Voice & Audio Transcription</h2>
+                        <div class="flex items-center gap-2 border-b border-zinc-200 dark:border-white/10 pb-2">
+                            <i data-lucide="mic" class="h-4 w-4 text-red-600"></i>
+                            <h2 class="text-xs font-bold uppercase tracking-wider text-red-700 dark:text-red-400 font-outfit">Voice & Audio Transcription</h2>
                         </div>
-                        <p class="text-xs text-gray-500 dark:text-cream/65 leading-relaxed">
+                        <p class="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
                             Convert speech and recordings directly to raw meeting notes text. Record live meetings via dictation or upload audio files for AI transcription.
                         </p>
 
                         <!-- Live Recording Card -->
-                        <div class="p-4 rounded-xl bg-white/40 dark:bg-black/35 border border-gray-300 dark:border-white/10 flex flex-col items-center gap-3">
-                            <div class="bg-maroon/10 dark:bg-gold/10 p-3 rounded-full text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20">
+                        <div class="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 flex flex-col items-center gap-3">
+                            <div class="bg-red-50 dark:bg-red-950/40 p-3 rounded-full text-red-600 border border-red-200 dark:border-red-900/40">
                                 <i data-lucide="mic" class="h-6 w-6"></i>
                             </div>
-                            <span class="text-xs font-bold text-gray-800 dark:text-cream">Live Meeting Dictation</span>
-                            <span class="text-[10px] text-gray-500 text-center max-w-[250px]">Dictate directly to the browser. Appends transcripts in real-time.</span>
-                            <button id="btn-record-mic" onclick="toggleMicrophone(event)" type="button" class="mt-2 w-full py-2 px-4 rounded-xl bg-maroon dark:bg-gold hover:bg-maroon-dark dark:hover:bg-gold-light text-gold dark:text-maroon font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5">
-                                <i data-lucide="mic" class="h-4 w-4"></i> Start Recording
+                            <span class="text-xs font-bold text-zinc-900 dark:text-zinc-100">Live Meeting Dictation</span>
+                            <span class="text-[10px] text-zinc-500 text-center max-w-[250px]">Dictate directly to the browser. Appends transcripts in real-time.</span>
+                            <button id="btn-record-mic" onclick="toggleMicrophone(event)" type="button" class="mt-2 w-full py-2 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-white font-semibold text-xs shadow-sm transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="mic" class="h-4 w-4 text-red-500"></i> Start Recording
                             </button>
                         </div>
 
                         <!-- Audio File Upload Card -->
-                        <div class="p-4 rounded-xl bg-white/40 dark:bg-black/35 border border-gray-300 dark:border-white/10 flex flex-col items-center gap-3">
-                            <div class="bg-maroon/10 dark:bg-gold/10 p-3 rounded-full text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20">
+                        <div class="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 flex flex-col items-center gap-3">
+                            <div class="bg-red-50 dark:bg-red-950/40 p-3 rounded-full text-red-600 border border-red-200 dark:border-red-900/40">
                                 <i data-lucide="file-audio" class="h-6 w-6"></i>
                             </div>
-                            <span class="text-xs font-bold text-gray-800 dark:text-cream">AI File Transcription</span>
-                            <span class="text-[10px] text-gray-500 text-center max-w-[250px]">Upload meeting audio (MP3/WAV/M4A) to transcribe with Gemini AI.</span>
-                            <button onclick="document.getElementById('audio-file-input').click()" type="button" class="mt-2 w-full py-2 px-4 rounded-xl border border-maroon dark:border-gold text-maroon dark:text-gold font-bold text-xs hover:bg-maroon/5 dark:hover:bg-gold/10 transition flex items-center justify-center gap-1.5">
-                                <i data-lucide="upload" class="h-4 w-4"></i> Select Audio File
+                            <span class="text-xs font-bold text-zinc-900 dark:text-zinc-100">AI File Transcription</span>
+                            <span class="text-[10px] text-zinc-500 text-center max-w-[250px]">Upload meeting audio (MP3/WAV/M4A) to transcribe with Gemini AI.</span>
+                            <button onclick="document.getElementById('audio-file-input').click()" type="button" class="mt-2 w-full py-2 px-4 rounded-xl border border-zinc-300 dark:border-white/20 text-zinc-800 dark:text-zinc-200 font-semibold text-xs hover:bg-zinc-100 dark:hover:bg-white/5 transition flex items-center justify-center gap-1.5">
+                                <i data-lucide="upload" class="h-4 w-4 text-red-600"></i> Select Audio File
                             </button>
                             <input id="audio-file-input" type="file" accept="audio/*" class="hidden" onchange="handleAudioFileChange(event)" />
                         </div>
@@ -631,15 +621,15 @@
         <section id="col-preview" class="flex-1 h-auto md:h-full flex flex-col bg-zinc-50 dark:bg-[#0c0506] relative hidden md:flex">
             
             <!-- Header toolbar -->
-            <div class="border-b border-gray-200 dark:border-white/5 px-6 py-4 flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#12090a]/50">
+            <div class="border-b border-zinc-200 dark:border-white/5 px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#12090a]/50">
                 <!-- View Switcher Tabs -->
-                <div class="flex bg-zinc-100 dark:bg-[#150709] p-1 rounded-xl border border-gray-200 dark:border-white/5">
+                <div class="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200 dark:border-white/5">
                     <button id="tab-preview" onclick="setActiveTab('preview')" disabled 
-                            class="px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition text-gray-500 dark:text-cream/50 hover:text-gray-800 dark:hover:text-cream disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider">
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-zinc-500 hover:text-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed">
                         <i data-lucide="eye" class="h-3.5 w-3.5"></i> Formatted Minutes
                     </button>
                     <button id="tab-edit" onclick="setActiveTab('edit')" disabled 
-                            class="px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition text-gray-500 dark:text-cream/50 hover:text-gray-800 dark:hover:text-cream disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-wider">
+                            class="px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-zinc-500 hover:text-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed">
                         <i data-lucide="edit-3" class="h-3.5 w-3.5"></i> Edit Markdown
                     </button>
                 </div>
@@ -647,55 +637,54 @@
                 <!-- Export options -->
                 <div class="flex items-center gap-2">
                     <button id="btn-copy" onclick="copyToClipboard()" disabled title="Copy markdown to clipboard" 
-                            class="p-2 rounded-xl bg-white/50 dark:bg-black/40 border border-gray-300 dark:border-white/10 text-gray-650 dark:text-cream/80 hover:bg-white/80 dark:hover:bg-black/60 hover:text-maroon dark:hover:text-gold hover:border-maroon/30 dark:hover:border-gold/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold shadow-sm">
-                        <i id="copy-icon" data-lucide="copy" class="h-4 w-4"></i>
+                            class="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 hover:text-zinc-900 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-medium shadow-sm">
+                        <i id="copy-icon" data-lucide="copy" class="h-3.5 w-3.5"></i>
                         <span id="copy-text">Copy</span>
                     </button>
                     <button id="btn-export-gdocs" onclick="directToGoogleDocs()" disabled title="Export directly to Google Docs (copies formatted text and opens docs.new)" 
-                            class="p-2 rounded-xl bg-white/55 dark:bg-black/40 border border-maroon/20 dark:border-gold/25 text-maroon dark:text-gold hover:bg-maroon/5 dark:hover:bg-gold/15 hover:text-maroon-dark dark:hover:text-gold-light active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider shadow-sm">
-                        <i data-lucide="file-text" class="h-4 w-4 text-maroon dark:text-gold"></i>
+                            class="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-zinc-700 dark:text-zinc-300 hover:border-red-300 hover:text-red-700 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold shadow-sm">
+                        <i data-lucide="file-text" class="h-3.5 w-3.5 text-red-600"></i>
                         <span>Docs</span>
                     </button>
                     <button id="btn-download-md" onclick="downloadMarkdown()" disabled title="Download as Markdown (.md)" 
-                            class="p-2 rounded-xl bg-white/50 dark:bg-black/40 border border-gray-300 dark:border-white/10 text-gray-650 dark:text-cream/80 hover:bg-white/80 dark:hover:bg-black/60 hover:text-maroon dark:hover:text-gold hover:border-maroon/30 dark:hover:border-gold/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold shadow-sm">
-                        <i data-lucide="download" class="h-4 w-4"></i>
+                            class="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 hover:text-zinc-900 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-medium shadow-sm">
+                        <i data-lucide="download" class="h-3.5 w-3.5"></i>
                         <span>MD</span>
                     </button>
                     <button id="btn-download-pdf" onclick="downloadPDF()" disabled title="Download formatted PDF" 
-                            class="p-2 rounded-xl bg-white/50 dark:bg-black/40 border border-gray-300 dark:border-white/10 text-gray-650 dark:text-cream/80 hover:bg-white/80 dark:hover:bg-black/60 hover:text-maroon dark:hover:text-gold hover:border-maroon/30 dark:hover:border-gold/30 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold shadow-sm">
-                        <i data-lucide="file-text" class="h-4 w-4"></i>
+                            class="p-2 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:border-zinc-300 hover:text-zinc-900 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-medium shadow-sm">
+                        <i data-lucide="file-text" class="h-3.5 w-3.5"></i>
                         <span>PDF</span>
                     </button>
                 </div>
             </div>
 
             <!-- Preview/Edit Content Area -->
-            <div id="content-container" class="flex-1 md:overflow-y-auto p-6 md:p-8 min-h-[400px] md:min-h-0">
+            <div id="content-container" class="flex-1 md:overflow-y-auto p-6 md:p-8 min-h-[400px] md:min-h-0 bg-white dark:bg-zinc-950">
                 
                 <!-- Empty State Placeholder -->
-                <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center p-6 animate-fade-in">
-                    <div class="bg-white/60 dark:bg-black/40 border border-white/40 dark:border-white/10 p-5 rounded-2xl mb-4 relative shadow-lg group hover:border-maroon/30 dark:hover:border-gold/30 transition">
-                        <div class="absolute -inset-0.5 bg-gradient-to-tr from-maroon to-gold rounded-2xl opacity-10 blur group-hover:opacity-20 transition duration-300"></div>
-                        <div class="bg-white/70 dark:bg-black/50 p-2.5 rounded-xl">
-                            <i data-lucide="file-text" class="h-10 w-10 text-gray-400 dark:text-cream/50 group-hover:text-maroon dark:group-hover:text-gold transition"></i>
+                <div id="empty-state" class="h-full flex flex-col items-center justify-center text-center p-8 animate-fade-in">
+                    <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 p-5 rounded-2xl mb-4 shadow-sm">
+                        <div class="h-12 w-12 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-100 dark:border-red-900/40 flex items-center justify-center mx-auto">
+                            <i data-lucide="sparkles" class="h-6 w-6 text-red-600"></i>
                         </div>
                     </div>
-                    <h3 class="text-base font-bold text-maroon dark:text-gold font-outfit uppercase tracking-wider">No Minutes Generated Yet</h3>
-                    <p class="text-xs text-gray-550 dark:text-cream/70 max-w-sm mt-2 leading-relaxed font-sans">
-                        Provide raw notes on the left panel or click the Board Meeting Notes sample to quickly generate your structured meeting minutes.
+                    <h3 class="text-base font-bold text-zinc-900 dark:text-zinc-100 font-outfit uppercase tracking-wider">No Minutes Generated Yet</h3>
+                    <p class="text-xs text-zinc-500 dark:text-zinc-400 max-w-md mt-2 leading-relaxed">
+                        Select a <strong class="text-red-700 dark:text-red-400 font-semibold">Meeting Recipe</strong> or type rough shorthand notes on the left panel to generate your structured meeting minutes.
                     </p>
 
-                    <div class="mt-8 grid grid-cols-1 gap-3 max-w-xs text-left w-full font-sans">
-                        <div class="flex items-center gap-3 text-xs text-gray-650 dark:text-cream/80">
-                            <span class="h-5 w-5 rounded-full bg-white/70 dark:bg-black/50 border border-gray-300 dark:border-white/10 flex items-center justify-center text-xxs font-bold text-maroon dark:text-gold">1</span>
-                            <span>Fill meeting metadata (optional)</span>
+                    <div class="mt-8 grid grid-cols-1 gap-2.5 max-w-xs text-left w-full font-sans">
+                        <div class="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                            <span class="h-5 w-5 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 flex items-center justify-center text-xxs font-bold text-red-700 dark:text-red-400">1</span>
+                            <span>Choose a recipe or upload .docx</span>
                         </div>
-                        <div class="flex items-center gap-3 text-xs text-gray-650 dark:text-cream/80">
-                            <span class="h-5 w-5 rounded-full bg-white/70 dark:bg-black/50 border border-gray-300 dark:border-white/10 flex items-center justify-center text-xxs font-bold text-maroon dark:text-gold">2</span>
-                            <span>Upload a .docx file or type raw notes</span>
+                        <div class="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                            <span class="h-5 w-5 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 flex items-center justify-center text-xxs font-bold text-red-700 dark:text-red-400">2</span>
+                            <span>Jot down quick shorthand bullet points</span>
                         </div>
-                        <div class="flex items-center gap-3 text-xs text-gray-650 dark:text-cream/80">
-                            <span class="h-5 w-5 rounded-full bg-white/70 dark:bg-black/50 border border-gray-300 dark:border-white/10 flex items-center justify-center text-xxs font-bold text-maroon dark:text-gold">3</span>
+                        <div class="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
+                            <span class="h-5 w-5 rounded-full bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900/40 flex items-center justify-center text-xxs font-bold text-red-700 dark:text-red-400">3</span>
                             <span>Click "Generate structured MoM"</span>
                         </div>
                     </div>
@@ -703,38 +692,30 @@
 
                 <!-- Skeleton Screen Loader -->
                 <div id="skeleton-loader" class="hidden space-y-6 animate-pulse">
-                    <div class="h-8 bg-gray-300 dark:bg-zinc-800 rounded-md w-3/4"></div>
-                    <div class="h-4 bg-gray-250 dark:bg-zinc-850 rounded-md w-1/3 mt-2"></div>
-                    <hr class="border-gray-250 dark:border-zinc-800 my-6" />
+                    <div class="h-8 bg-zinc-200 dark:bg-zinc-800 rounded-md w-3/4"></div>
+                    <div class="h-4 bg-zinc-150 dark:bg-zinc-850 rounded-md w-1/3 mt-2"></div>
+                    <hr class="border-zinc-200 dark:border-zinc-800 my-6" />
                     <div class="space-y-4">
-                        <div class="h-4 bg-gray-300 dark:bg-zinc-800 rounded-md w-1/4"></div>
+                        <div class="h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md w-1/4"></div>
                         <div class="space-y-2 pl-4">
-                            <div class="h-3.5 bg-gray-250 dark:bg-zinc-850 rounded-md w-5/6"></div>
-                            <div class="h-3.5 bg-gray-250 dark:bg-zinc-850 rounded-md w-4/6"></div>
-                        </div>
-                    </div>
-                    <div class="space-y-4 mt-8">
-                        <div class="h-4 bg-gray-300 dark:bg-zinc-800 rounded-md w-1/3"></div>
-                        <div class="space-y-2 pl-4">
-                            <div class="h-3.5 bg-gray-250 dark:bg-zinc-850 rounded-md w-full"></div>
-                            <div class="h-3.5 bg-gray-250 dark:bg-zinc-850 rounded-md w-11/12"></div>
-                            <div class="h-3.5 bg-gray-250 dark:bg-zinc-850 rounded-md w-4/5"></div>
+                            <div class="h-3.5 bg-zinc-150 dark:bg-zinc-850 rounded-md w-5/6"></div>
+                            <div class="h-3.5 bg-zinc-150 dark:bg-zinc-850 rounded-md w-4/6"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Attendance Tally & Quorum Verification -->
-                <div id="attendance-tally-card" class="hidden mb-6 p-4 rounded-xl bg-white/60 dark:bg-black/50 border border-gray-300 dark:border-white/10 shadow-sm space-y-3 font-sans">
-                    <div class="flex items-center justify-between border-b border-gray-200 dark:border-white/10 pb-2">
-                        <h4 class="text-xs font-bold text-maroon dark:text-gold uppercase tracking-wider flex items-center gap-1.5">
-                            <i data-lucide="users" class="h-4 w-4"></i> Attendance Tally & Quorum Verification
+                <div id="attendance-tally-card" class="hidden mb-6 p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 shadow-sm space-y-3 font-sans">
+                    <div class="flex items-center justify-between border-b border-zinc-200 dark:border-white/10 pb-2">
+                        <h4 class="text-xs font-bold text-red-700 dark:text-red-400 uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="users" class="h-4 w-4 text-red-600"></i> Attendance Tally & Quorum Verification
                         </h4>
                         <span id="quorum-badge" class="text-xxs px-2.5 py-0.5 rounded-full font-bold"></span>
                     </div>
                     <div class="grid grid-cols-5 gap-2 text-center">
-                        <div class="bg-gray-100/50 dark:bg-white/5 p-2 rounded-lg">
-                            <div class="text-[10px] font-semibold text-gray-500 uppercase">Total</div>
-                            <div id="tally-total" class="text-base font-bold text-gray-800 dark:text-cream">0</div>
+                        <div class="bg-white dark:bg-white/5 p-2 rounded-lg border border-zinc-200 dark:border-transparent">
+                            <div class="text-[10px] font-semibold text-zinc-500 uppercase">Total</div>
+                            <div id="tally-total" class="text-base font-bold text-zinc-900 dark:text-zinc-100">0</div>
                         </div>
                         <div class="bg-green-500/10 p-2 rounded-lg">
                             <div class="text-[10px] font-semibold text-green-600 dark:text-green-400 uppercase">Present</div>
@@ -756,14 +737,14 @@
                 </div>
 
                 <!-- Styled Markdown Viewer -->
-                <div id="preview-container" class="hidden prose prose-zinc dark:prose-invert max-w-none pb-12 prose-h1:text-maroon dark:prose-h1:text-gold prose-h1:text-center prose-h1:text-2xl prose-h1:md:text-3xl prose-h1:font-extrabold prose-h1:border-b prose-h1:border-white/30 dark:prose-h1:border-white/10 prose-h1:pb-3 prose-h1:mb-6 prose-h2:text-maroon/90 dark:prose-h2:text-gold/90 prose-h2:text-lg prose-h2:md:text-xl prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-4 prose-h2:tracking-wide prose-h2:uppercase prose-h2:border-b prose-h2:border-white/15 dark:prose-h2:border-white/5 prose-h2:pb-1 prose-h3:text-maroon/80 dark:prose-h3:text-gold/80 prose-h3:text-base prose-h3:md:text-lg prose-h3:font-semibold prose-h3:mt-6 prose-h3:mb-3 prose-p:text-gray-700 dark:prose-p:text-cream/90 prose-p:leading-relaxed prose-p:mb-4 prose-p:text-sm prose-p:md:text-base prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-5 prose-ul:space-y-2 prose-ul:text-gray-705 dark:prose-ul:text-cream/80 prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-5 prose-ol:space-y-2 prose-ol:text-gray-705 dark:prose-ol:text-cream/80 prose-blockquote:border-l-4 prose-blockquote:border-maroon dark:prose-blockquote:border-gold prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600 dark:prose-blockquote:text-cream/70 prose-blockquote:my-5 prose-blockquote:bg-maroon/5 dark:prose-blockquote:bg-gold/5 prose-blockquote:py-2 prose-blockquote:rounded-r-md prose-table:overflow-x-auto prose-table:my-6 prose-table:border prose-table:border-white/30 dark:prose-table:border-white/10 prose-table:rounded-lg prose-thead:bg-white/40 dark:prose-thead:bg-black/40 prose-thead:text-gray-900 dark:prose-thead:text-cream prose-tr:hover:bg-white/20 dark:prose-tr:hover:bg-black/20 prose-tr:transition-colors">
+                <div id="preview-container" class="hidden prose prose-zinc dark:prose-invert max-w-none pb-12 prose-h1:text-zinc-900 dark:prose-h1:text-white prose-h1:text-center prose-h1:text-2xl prose-h1:font-extrabold prose-h1:border-b prose-h1:border-zinc-200 dark:prose-h1:border-zinc-800 prose-h1:pb-3 prose-h1:mb-6 prose-h2:text-red-700 dark:prose-h2:text-red-400 prose-h2:text-lg prose-h2:font-bold prose-h2:mt-8 prose-h2:mb-4 prose-h2:tracking-wide prose-h2:uppercase prose-h2:border-b prose-h2:border-zinc-100 dark:prose-h2:border-zinc-800/60 prose-h2:pb-1 prose-h3:text-zinc-900 dark:prose-h3:text-zinc-100 prose-h3:text-base prose-h3:font-semibold prose-h3:mt-6 prose-h3:mb-3 prose-p:text-zinc-800 dark:prose-p:text-zinc-200 prose-p:leading-relaxed prose-p:mb-4 prose-p:text-sm prose-ul:list-disc prose-ul:pl-6 prose-ul:mb-5 prose-ul:space-y-1.5 prose-ul:text-zinc-700 dark:prose-ul:text-zinc-300 prose-ol:list-decimal prose-ol:pl-6 prose-ol:mb-5 prose-ol:space-y-1.5 prose-ol:text-zinc-700 dark:prose-ol:text-zinc-300 prose-blockquote:border-l-4 prose-blockquote:border-red-600 prose-blockquote:bg-red-50/40 dark:prose-blockquote:bg-red-950/20 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-zinc-700 dark:prose-blockquote:text-zinc-300 prose-blockquote:my-5 prose-blockquote:py-2 prose-blockquote:rounded-r-md prose-table:overflow-x-auto prose-table:my-6 prose-table:border prose-table:border-zinc-200 dark:prose-table:border-zinc-800 prose-table:rounded-lg prose-thead:bg-zinc-50 dark:prose-thead:bg-zinc-900 prose-thead:text-zinc-900 dark:prose-thead:text-zinc-100">
                 </div>
 
                 <!-- Raw Markdown Editor -->
                 <div id="edit-container" class="hidden h-full flex flex-col animate-fade-in">
                     <textarea id="markdown-editor" oninput="updateMinutesFromEditor()" 
-                              class="w-full flex-1 min-h-[400px] p-6 rounded-xl bg-white/50 dark:bg-black/50 border border-gray-300 dark:border-white/10 text-sm text-gray-950 dark:text-cream font-mono focus:outline-none focus:border-maroon dark:focus:border-gold transition resize-none leading-relaxed"></textarea>
-                    <p class="text-xxs text-gray-500 dark:text-cream/55 mt-2 font-mono">
+                              class="w-full flex-1 min-h-[400px] p-6 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-sm text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:border-red-600 focus:ring-1 focus:ring-red-600 transition resize-none leading-relaxed"></textarea>
+                    <p class="text-xxs text-zinc-500 dark:text-zinc-400 mt-2 font-mono">
                         Note: Editing here updates the active preview state. Downloading or copying will export these current changes.
                     </p>
                 </div>
@@ -799,6 +780,157 @@
         let scriptUrl = '';
         let clientId = '';
         let accessToken = '';
+
+        // Granola-inspired Shorthand Recipes / Templates
+        const recipeTemplates = {
+            legislative: {
+                name: 'Legislative Session',
+                title: '2nd Legislative Meeting of the Supreme Student Government',
+                date: 'October 16, 2026 at 2:00 PM',
+                chair: 'Hon. Kathlyn Baclayo, President',
+                secretary: 'Hon. Janquel B. Geagonia, Executive Secretary',
+                description: 'Standard SSG Parliamentary Session with Formal Motions & Agendas',
+                template: `MEETING: 2nd Legislative Meeting of the Supreme Student Government
+DATE: October 16, 2026 at 2:00 PM
+PRESIDING OFFICER: Hon. Kathlyn Baclayo, President
+SECRETARY: Hon. Janquel B. Geagonia, Executive Secretary
+INVOCATION: The opening prayer was led by Hon. Alex Rivera, Councilor.
+ROLL CALL: 14 were present, 2 were excused, and 0 were absent. A quorum was declared.
+
+AGENDA:
+A. Approval of General Fund Budget for College Intramurals
+B. Busog Estudyante Food Pantry Expansion Project
+C. Student Grievance Mechanism and Council Action
+
+DELIBERATIONS & DISCUSSIONS:
+Approval of Agenda: A motion to approve the agenda was raised by Hon. Marco Reyes and seconded by Hon. Patricia Lee. The body approved the motion.
+
+A. Approval of General Fund Budget for College Intramurals:
+- The Committee on Finance presented the requested PHP 45,000 for sports equipment, first aid, and certificates.
+- Hon. Marco Reyes moved to approve the budget allocation.
+- Hon. Patricia Lee seconded the motion.
+- The body approved the allocation unanimously without objections.
+
+B. Busog Estudyante Food Pantry Expansion Project:
+- Reported over 350 student beneficiaries served in the previous week.
+- Identified need for staple supplies and additional volunteer rotations.
+- Hon. Gabriel Ramos moved to allocate PHP 10,000 contingency funding for supply restocks.
+- Hon. Angela Perez seconded the motion. The motion was carried.
+
+C. Student Grievance Mechanism and Council Action:
+- Committee on Student Rights presented reports on shuttle scheduling concerns.
+- Executive board agreed to submit formal representation to the University Administration by Monday.
+
+CLOSING PRAYER & ADJOURNMENT:
+- The closing prayer was led by Hon. Teresa Diaz, Councilor.
+- A motion to adjourn was raised by Hon. Gabriel Ramos and seconded by Hon. Angela Perez. The meeting adjourned at 4:15 PM.`
+            },
+            executive: {
+                name: 'Executive Committee',
+                title: 'Executive Board Coordination Meeting',
+                date: 'October 16, 2026 at 4:30 PM',
+                chair: 'Hon. Kathlyn Baclayo, President',
+                secretary: 'Hon. Janquel B. Geagonia, Executive Secretary',
+                description: 'Executive Board Officer Reports, Project Deadlines & Operations',
+                template: `MEETING: Executive Board Coordination Meeting
+DATE: October 16, 2026 at 4:30 PM
+PRESIDING OFFICER: Hon. Kathlyn Baclayo, President
+SECRETARY: Hon. Janquel B. Geagonia, Executive Secretary
+INVOCATION: The opening prayer was led by Hon. Maria Santos, Vice President.
+ROLL CALL: 8 were present, 0 were excused, and 0 were absent. A quorum was declared.
+
+AGENDA:
+A. Midterm SSG Leadership Summit Planning
+B. Logistics & Venue Coordination
+C. Financial Report & Liquidation Schedule
+
+DELIBERATIONS & DISCUSSIONS:
+Approval of Agenda: A motion to approve the agenda was raised by Hon. Maria Santos and seconded by Hon. Juan Dela Cruz. The body approved the motion.
+
+A. Midterm SSG Leadership Summit Planning:
+- Proposed theme: 'Empowering Student Leaders in the Modern Academic Era'.
+- Target date set for November 12-13 at the University Auditorium.
+- All committee heads must finalize guest speakers by next Friday.
+
+B. Logistics & Venue Coordination:
+- Physical plant request submitted for sound system, stage lighting, and 250 chairs.
+- Catering committee to submit quotes for 3 meal sets.
+
+C. Financial Report & Liquidation Schedule:
+- Treasurer reported total balance of remaining quarterly allocation: PHP 78,450.
+- All receipts from previous projects must be submitted to the Commission on Audit by October 25.
+
+CLOSING PRAYER & ADJOURNMENT:
+- The closing prayer was led by Hon. Juan Dela Cruz, Councilor.
+- A motion to adjourn was raised by Hon. Maria Santos and seconded by Hon. Juan Dela Cruz. The meeting adjourned at 5:45 PM.`
+            },
+            special: {
+                name: 'Emergency / Special Session',
+                title: 'Emergency Special Session of the SSG Council',
+                date: 'October 16, 2026 at 6:00 PM',
+                chair: 'Hon. Kathlyn Baclayo, President',
+                secretary: 'Hon. Janquel B. Geagonia, Executive Secretary',
+                description: 'Urgent Council Convocations, Emergency Resolutions & Relief Actions',
+                template: `MEETING: Emergency Special Session of the SSG Council
+DATE: October 16, 2026 at 6:00 PM
+PRESIDING OFFICER: Hon. Kathlyn Baclayo, President
+SECRETARY: Hon. Janquel B. Geagonia, Executive Secretary
+INVOCATION: The opening prayer was led by Hon. Mark Dizon, Auditor.
+ROLL CALL: 12 were present, 4 were excused, and 0 were absent. A quorum was declared.
+
+AGENDA:
+A. Typhoon Calamity Relief Drive and Student Assistance
+B. Temporary Suspension of Academic Deadlines Representation
+
+DELIBERATIONS & DISCUSSIONS:
+Approval of Agenda: A motion to approve the agenda was raised by Hon. Mark Dizon and seconded by Hon. Chloe Lim. The body approved the motion.
+
+A. Typhoon Calamity Relief Drive and Student Assistance:
+- Mobilization of emergency relief station at the Student Activity Center.
+- Council unanimously resolved to disburse PHP 20,000 from emergency calamity reserves.
+- Call for non-perishable food, drinking water, and hygiene kit donations.
+
+B. Temporary Suspension of Academic Deadlines Representation:
+- Passed Council Resolution No. 04-2026 petitioning the Office of the Vice President for Academic Affairs for a 3-day moratorium on assignment deadlines.
+- Assigned President to transmit resolution via official channels tonight.
+
+CLOSING PRAYER & ADJOURNMENT:
+- The closing prayer was led by Hon. Chloe Lim, PRO.
+- A motion to adjourn was raised by Hon. Mark Dizon and seconded by Hon. Chloe Lim. The meeting adjourned at 6:50 PM.`
+            }
+        };
+
+        let currentActiveRecipe = 'legislative';
+
+        function handleApplyRecipe(recipeKey) {
+            currentActiveRecipe = recipeKey;
+            const rec = recipeTemplates[recipeKey];
+            if (!rec) return;
+
+            ['legislative', 'executive', 'special'].forEach(key => {
+                const btn = document.getElementById(`recipe-btn-${key}`);
+                if (btn) {
+                    if (key === recipeKey) {
+                        btn.className = "py-2 px-2.5 rounded-lg text-xs font-semibold border transition text-center bg-zinc-900 text-white border-zinc-900 shadow-sm flex items-center justify-center gap-1.5";
+                    } else {
+                        btn.className = "py-2 px-2.5 rounded-lg text-xs font-medium border border-zinc-200 dark:border-white/10 hover:border-zinc-300 dark:hover:border-white/20 text-zinc-600 dark:text-zinc-300 bg-white dark:bg-black/30 transition text-center flex items-center justify-center gap-1.5";
+                    }
+                }
+            });
+
+            const descEl = document.getElementById('recipe-description');
+            if (descEl) descEl.textContent = rec.description;
+
+            document.getElementById('raw-notes-input').value = rec.template;
+            updateWordCount();
+
+            if (rec.title) document.getElementById('meeting-title').value = rec.title;
+            if (rec.date) document.getElementById('meeting-date').value = rec.date;
+            if (rec.chair) document.getElementById('meeting-chair').value = rec.chair;
+            if (rec.secretary) document.getElementById('meeting-secretary').value = rec.secretary;
+
+            showSuccessAlert(`Loaded ${rec.name} shorthand notes!`);
+        }
 
         // Pre-baked offline fallback for "To be edited (1).docx"
         const OFFLINE_SAMPLE_TEXT = `HR Garments – ngutana how is the progress sa costumes
@@ -1027,21 +1159,21 @@ Next day, August 19, 2025, the date of the CTU Nite, it was discussed that the c
             e.preventDefault();
             e.stopPropagation();
             const dropZone = document.getElementById('drop-zone');
-            dropZone.classList.add('border-maroon', 'dark:border-gold', 'bg-maroon/5', 'dark:bg-gold/5');
+            dropZone.classList.add('border-red-600', 'bg-red-550/5');
         }
 
         function handleDragLeave(e) {
             e.preventDefault();
             e.stopPropagation();
             const dropZone = document.getElementById('drop-zone');
-            dropZone.classList.remove('border-maroon', 'dark:border-gold', 'bg-maroon/5', 'dark:bg-gold/5');
+            dropZone.classList.remove('border-red-600', 'bg-red-550/5');
         }
 
         async function handleDrop(e) {
             e.preventDefault();
             e.stopPropagation();
             const dropZone = document.getElementById('drop-zone');
-            dropZone.classList.remove('border-maroon', 'dark:border-gold', 'bg-maroon/5', 'dark:bg-gold/5');
+            dropZone.classList.remove('border-red-600', 'bg-red-550/5');
 
             if (e.dataTransfer.files && e.dataTransfer.files[0]) {
                 await processFile(e.dataTransfer.files[0]);
@@ -1348,19 +1480,16 @@ Crucially, you must preserve 100% of the facts, discussions, decisions, suggesti
             const tabPreview = document.getElementById('tab-preview');
             const tabEdit = document.getElementById('tab-edit');
             
-            tabPreview.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition text-gray-550 dark:text-cream/50 hover:text-gray-800 dark:hover:text-cream uppercase tracking-wider";
-            tabEdit.className = "px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition text-gray-550 dark:text-cream/50 hover:text-gray-800 dark:hover:text-cream uppercase tracking-wider";
-
-            tabPreview.classList.remove('bg-white', 'dark:bg-black/60', 'text-maroon', 'dark:text-gold', 'shadow-sm', 'border', 'border-maroon/20', 'dark:border-gold/20');
-            tabEdit.classList.remove('bg-white', 'dark:bg-black/60', 'text-maroon', 'dark:text-gold', 'shadow-sm', 'border', 'border-maroon/20', 'dark:border-gold/20');
+            tabPreview.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100";
+            tabEdit.className = "px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-100";
 
             if (tab === 'preview') {
-                tabPreview.classList.add('bg-white', 'dark:bg-black/60', 'text-maroon', 'dark:text-gold', 'shadow-sm', 'border', 'border-maroon/20', 'dark:border-gold/20');
+                tabPreview.classList.add('bg-white', 'dark:bg-zinc-800', 'text-red-700', 'dark:text-red-400', 'shadow-sm', 'border', 'border-zinc-200', 'dark:border-white/10');
                 document.getElementById('preview-container').classList.remove('hidden');
                 document.getElementById('edit-container').classList.add('hidden');
                 renderMarkdown();
             } else {
-                tabEdit.classList.add('bg-white', 'dark:bg-black/60', 'text-maroon', 'dark:text-gold', 'shadow-sm', 'border', 'border-maroon/20', 'dark:border-gold/20');
+                tabEdit.classList.add('bg-white', 'dark:bg-zinc-800', 'text-red-700', 'dark:text-red-400', 'shadow-sm', 'border', 'border-zinc-200', 'dark:border-white/10');
                 document.getElementById('preview-container').classList.add('hidden');
                 document.getElementById('edit-container').classList.remove('hidden');
             }
@@ -2513,15 +2642,15 @@ Crucially, you must preserve 100% of the facts, discussions, decisions, suggesti
             const list = document.getElementById('signatories-list');
             
             const div = document.createElement('div');
-            div.className = "signatory-item flex gap-2 items-center bg-white/20 dark:bg-black/20 p-2.5 rounded-xl border border-gray-300 dark:border-white/5 relative group";
+            div.className = "signatory-item flex gap-2 items-center bg-zinc-50 dark:bg-black/20 p-2.5 rounded-xl border border-zinc-200 dark:border-white/5 relative group";
             
             div.innerHTML = `
                 <div class="grid grid-cols-3 gap-2 flex-1">
-                    <input type="text" placeholder="Label" class="signatory-label px-2 py-1 text-[10px] rounded bg-white dark:bg-black border border-gray-300 dark:border-white/10 text-gray-900 dark:text-cream placeholder-gray-400 focus:outline-none focus:border-maroon dark:focus:border-gold" value="${label}"/>
-                    <input type="text" placeholder="Full Name" class="signatory-name px-2 py-1 text-[10px] rounded bg-white dark:bg-black border border-gray-300 dark:border-white/10 text-gray-900 dark:text-cream placeholder-gray-400 focus:outline-none focus:border-maroon dark:focus:border-gold" value="${name}"/>
-                    <input type="text" placeholder="Title/Role" class="signatory-role px-2 py-1 text-[10px] rounded bg-white dark:bg-black border border-gray-300 dark:border-white/10 text-gray-900 dark:text-cream placeholder-gray-400 focus:outline-none focus:border-maroon dark:focus:border-gold" value="${role}"/>
+                    <input type="text" placeholder="Label" class="signatory-label px-2 py-1 text-[10px] rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 dark:focus:border-red-500" value="${label}"/>
+                    <input type="text" placeholder="Full Name" class="signatory-name px-2 py-1 text-[10px] rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 dark:focus:border-red-500" value="${name}"/>
+                    <input type="text" placeholder="Title/Role" class="signatory-role px-2 py-1 text-[10px] rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:border-red-600 dark:focus:border-red-500" value="${role}"/>
                 </div>
-                <button onclick="removeSignatoryField(this)" type="button" class="p-1.5 text-red-500 hover:bg-red-500/10 rounded transition active:scale-95">
+                <button onclick="removeSignatoryField(this)" type="button" class="p-1.5 text-zinc-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 rounded transition active:scale-95">
                     <i data-lucide="trash-2" class="h-3.5 w-3.5"></i>
                 </button>
             `;
@@ -2649,7 +2778,7 @@ Crucially, you must preserve 100% of the facts, discussions, decisions, suggesti
                     
                     recognition.onend = () => {
                         isRecording = false;
-                        btn.className = "px-2.5 py-1 rounded bg-maroon/10 dark:bg-gold/15 hover:bg-maroon/20 dark:hover:bg-gold/25 text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20 text-[10px] font-bold transition flex items-center gap-1";
+                        btn.className = "px-2.5 py-1 rounded bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border border-zinc-200 dark:border-zinc-700 text-[10px] font-semibold transition flex items-center gap-1";
                         btn.innerHTML = `<i data-lucide="mic" class="h-3.5 w-3.5"></i> Record Live`;
                         lucide.createIcons();
                     };
