@@ -1,27 +1,33 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fdfbf7; /* Warm SSG Cream */
-  --foreground: #121212; /* Deep Slate Black */
-  --border-color: #e8dfd1; /* Cream-dark border */
-  --card-bg: #ffffff; /* Clean white cards */
-  --sidebar-bg: #6b1113; /* SSG Maroon Sidebar */
-  --drawer-bg: #f4efe6; /* SSG Cream-dark drawer */
+  --background: #ffffff; /* Minimal Crisp White */
+  --foreground: #18181b; /* Deep Zinc / Slate Charcoal */
+  --border-color: #e4e4e7; /* Subtle light gray border */
+  --card-bg: #ffffff; /* Pure white surface */
+  --sidebar-bg: #fafafa; /* Clean minimal light sidebar */
+  --drawer-bg: #fcfcfc; /* Crisp minimal drawer */
   
-  /* Maroon and Gold Accents */
-  --color-maroon: #6b1113;
-  --color-maroon-dark: #4a0c0e;
-  --color-gold: #f4c430;
-  --color-gold-light: #f8d868;
+  /* Red Accents for Fonts and Subtle Details */
+  --color-maroon: #991b1b; /* Elegant Crimson Red for fonts */
+  --color-maroon-dark: #7f1d1d;
+  --color-gold: #991b1b; /* Mapped to crimson red for cohesive theme */
+  --color-gold-light: #b91c1c;
 }
 
 .dark {
-  --background: #0f0203; /* Deep burgundy off-black */
-  --foreground: #fdfbf7; /* Cream text */
-  --border-color: #3b0a0d; /* Burgundy border */
-  --card-bg: #1c0507; /* Elevated deep maroon card */
-  --sidebar-bg: #150709; /* Burgundy-black sidebar */
-  --drawer-bg: #18090b; /* Deep maroon drawer background */
+  --background: #09090b; /* Minimal modern zinc black */
+  --foreground: #f4f4f5; /* Clean light text */
+  --border-color: #27272a; /* Muted zinc border */
+  --card-bg: #121215; /* Clean dark surface */
+  --sidebar-bg: #09090b; /* Seamless dark sidebar */
+  --drawer-bg: #101014; /* Elevated dark drawer */
+  
+  /* Red Accents in Dark Mode */
+  --color-maroon: #f87171; /* Soft Crimson Red for dark mode font accents */
+  --color-maroon-dark: #ef4444;
+  --color-gold: #f87171;
+  --color-gold-light: #fca5a5;
 }
 
 @theme inline {
@@ -41,13 +47,13 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
-/* Premium Scrollbar Styling */
+/* Minimal Scrollbar Styling */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
@@ -55,18 +61,18 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(107, 17, 19, 0.2);
-  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.12);
+  border-radius: 4px;
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(244, 196, 48, 0.2);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(107, 17, 19, 0.4);
+  background: rgba(0, 0, 0, 0.25);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(244, 196, 48, 0.4);
+  background: rgba(255, 255, 255, 0.25);
 }

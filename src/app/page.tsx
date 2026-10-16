@@ -143,14 +143,119 @@ export default function Home() {
   const recognitionRef = useRef<any>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
 
-  // Theme states
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
+  // Theme states - Default to clean, minimal white
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [mobileTab, setMobileTab] = useState<'editor' | 'preview'>('editor');
   const [isDrawerCollapsed, setIsDrawerCollapsed] = useState(false);
 
+  // Granola-inspired Shorthand Recipes / Templates
+  type MeetingRecipe = 'legislative' | 'executive' | 'special';
+  const [activeRecipe, setActiveRecipe] = useState<MeetingRecipe>('legislative');
+
+  const recipeTemplates: Record<MeetingRecipe, { name: string; template: string; description: string }> = {
+    legislative: {
+      name: 'Legislative Session',
+      description: 'Standard SSG Parliamentary Session with Formal Motions & Agendas',
+      template: `MEETING: 2nd Legislative Meeting of the Supreme Student Government
+DATE: October 16, 2026 at 2:00 PM
+PRESIDING OFFICER: Hon. Juan Dela Cruz, SSG President
+SECRETARY: Hon. Maria Santos, Executive Secretary
+INVOCATION: The opening prayer was led by Hon. Alex Rivera, Councilor.
+ROLL CALL: 14 were present, 2 were excused, and 0 were absent. A quorum was declared.
+
+AGENDA:
+A. Approval of General Fund Budget for College Intramurals
+B. Busog Estudyante Food Pantry Expansion Project
+C. Student Grievance Mechanism and Council Action
+
+DELIBERATIONS & DISCUSSIONS:
+Approval of Agenda: A motion to approve the agenda was raised by Hon. Marco Reyes and seconded by Hon. Patricia Lee. The body approved the motion.
+
+A. Approval of General Fund Budget for College Intramurals:
+- The Committee on Finance presented the requested PHP 45,000 for sports equipment, first aid, and certificates.
+- Hon. Marco Reyes moved to approve the budget allocation.
+- Hon. Patricia Lee seconded the motion.
+- The body approved the allocation unanimously without objections.
+
+B. Busog Estudyante Food Pantry Expansion Project:
+- Reported over 350 student beneficiaries served in the previous week.
+- Identified need for staple supplies and additional volunteer rotations.
+- Hon. Gabriel Ramos moved to allocate PHP 10,000 contingency funding for supply restocks.
+- Hon. Angela Perez seconded the motion. The motion was carried.
+
+C. Student Grievance Mechanism and Council Action:
+- Committee on Student Rights presented reports on shuttle scheduling concerns.
+- Executive board agreed to submit formal representation to the University Administration by Monday.
+
+CLOSING PRAYER & ADJOURNMENT:
+- The closing prayer was led by Hon. Teresa Diaz, Councilor.
+- A motion to adjourn was raised by Hon. Gabriel Ramos and seconded by Hon. Angela Perez. The meeting adjourned at 4:15 PM.`
+    },
+    executive: {
+      name: 'Executive Committee',
+      description: 'Executive Board Officer Reports, Project Deadlines & Operations',
+      template: `MEETING: Executive Board Coordination Meeting
+DATE: October 16, 2026 at 4:30 PM
+PRESIDING OFFICER: Hon. Juan Dela Cruz, SSG President
+SECRETARY: Hon. Maria Santos, Executive Secretary
+INVOCATION: The opening prayer was led by Hon. Patricia Lee.
+ROLL CALL: 8 executive officers present, 0 absent. Quorum declared.
+
+AGENDA:
+A. Internal Committee Progress Reports
+B. Upcoming Campus Leadership Summit Planning
+C. Logistics and Operational Timeline
+
+DELIBERATIONS & DISCUSSIONS:
+Approval of Agenda: A motion to approve the agenda was raised by Hon. Patricia Lee and seconded by Hon. Marco Reyes. The body approved the motion.
+
+A. Internal Committee Progress Reports:
+- Secretariat reported all previous minutes completed and filed with Student Affairs.
+- Finance presented monthly balance sheet showing surplus contingency.
+
+B. Upcoming Campus Leadership Summit Planning:
+- Proposed date: November 12, 2026. Target attendees: 120 student leaders.
+- Keynote speaker invitations to be finalized by Friday.
+
+C. Logistics and Operational Timeline:
+- Production team to finalize venue booking and sound system reservation.`
+    },
+    special: {
+      name: 'Emergency Meeting',
+      description: 'Urgent Council Assembly, Emergency Relief or Immediate Motions',
+      template: `MEETING: Special Emergency Legislative Meeting
+DATE: October 16, 2026 at 6:00 PM
+PRESIDING OFFICER: Hon. Juan Dela Cruz, SSG President
+SECRETARY: Hon. Maria Santos, Executive Secretary
+INVOCATION: The opening prayer was led by Hon. Angela Perez.
+ROLL CALL: 13 members present, 3 excused. Quorum declared.
+
+AGENDA:
+A. Emergency Student Relief Fund Allocation
+B. Campus Operations and Advisory Resolution
+
+DELIBERATIONS & DISCUSSIONS:
+Approval of Agenda: A motion to approve the agenda was raised by Hon. Marco Reyes and seconded by Hon. Gabriel Ramos. The body approved the motion.
+
+A. Emergency Student Relief Fund Allocation:
+- Emergency assistance request for students affected by inclement weather.
+- Hon. Marco Reyes moved to immediately disburse PHP 25,000 for relief food kits.
+- Hon. Gabriel Ramos seconded. Approved unanimously.
+
+B. Campus Operations and Advisory Resolution:
+- SSG resolution recommending asynchronous classes submitted to the Dean.`
+    }
+  };
+
+  const handleApplyRecipe = (recipe: MeetingRecipe) => {
+    setActiveRecipe(recipe);
+    setRawNotes(recipeTemplates[recipe].template);
+    setSuccess('Loaded ' + recipeTemplates[recipe].name + ' shorthand notes!');
+  };
+
   useEffect(() => {
     const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    const initialTheme = savedTheme || 'dark';
+    const initialTheme = savedTheme || 'light';
     setTheme(initialTheme);
     if (initialTheme === 'dark') {
       document.documentElement.classList.add('dark');
@@ -1519,64 +1624,64 @@ export default function Home() {
     doc.save(`${fileTitle}_minutes.pdf`);
   };
 
-  // Custom components for Markdown Renderer to make it look premium
+  // Custom components for Markdown Renderer - Clean minimal white with red heading font accents
   const markdownComponents = {
     h1: ({ children }: any) => (
-      <h1 className="text-2xl md:text-3xl font-extrabold text-zinc-100 border-b border-zinc-800 pb-3 mb-6 font-sans">
+      <h1 className="text-2xl md:text-3xl font-extrabold text-zinc-900 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-800 pb-3 mb-6 font-sans">
         {children}
       </h1>
     ),
     h2: ({ children }: any) => (
-      <h2 className="text-lg md:text-xl font-bold text-maroon dark:text-gold mt-8 mb-4 tracking-wide uppercase border-b border-zinc-800/40 pb-1 font-sans">
+      <h2 className="text-lg md:text-xl font-bold text-red-800 dark:text-red-400 mt-8 mb-4 tracking-wide uppercase border-b border-red-100 dark:border-red-950/40 pb-1 font-sans">
         {children}
       </h2>
     ),
     h3: ({ children }: any) => (
-      <h3 className="text-base md:text-lg font-semibold text-emerald-600 dark:text-emerald-400 mt-6 mb-3 font-sans">
+      <h3 className="text-base md:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mt-6 mb-3 font-sans">
         {children}
       </h3>
     ),
     p: ({ children }: any) => (
-      <p className="text-zinc-800 dark:text-zinc-300 leading-relaxed mb-4 text-sm md:text-base font-sans">
+      <p className="text-zinc-800 dark:text-zinc-200 leading-relaxed mb-4 text-sm md:text-base font-sans">
         {children}
       </p>
     ),
     ul: ({ children }: any) => (
-      <ul className="list-disc pl-6 mb-5 space-y-2 text-zinc-800 dark:text-zinc-300 text-sm md:text-base font-sans">
+      <ul className="list-disc pl-6 mb-5 space-y-2 text-zinc-800 dark:text-zinc-200 text-sm md:text-base font-sans">
         {children}
       </ul>
     ),
     ol: ({ children }: any) => (
-      <ol className="list-decimal pl-6 mb-5 space-y-2 text-zinc-800 dark:text-zinc-300 text-sm md:text-base font-sans">
+      <ol className="list-decimal pl-6 mb-5 space-y-2 text-zinc-800 dark:text-zinc-200 text-sm md:text-base font-sans">
         {children}
       </ol>
     ),
     li: ({ children }: any) => (
-      <li className="text-zinc-800 dark:text-zinc-300 leading-relaxed">
+      <li className="text-zinc-800 dark:text-zinc-200 leading-relaxed">
         {children}
       </li>
     ),
     blockquote: ({ children }: any) => (
-      <blockquote className="border-l-4 border-maroon dark:border-gold pl-4 italic text-zinc-600 dark:text-zinc-400 my-5 bg-zinc-100 dark:bg-zinc-900/40 py-2 rounded-r-md">
+      <blockquote className="border-l-4 border-red-700 dark:border-red-500 pl-4 italic text-zinc-650 dark:text-zinc-400 my-5 bg-zinc-50 dark:bg-zinc-900/40 py-2 rounded-r-md">
         {children}
       </blockquote>
     ),
     strong: ({ children }: any) => (
-      <strong className="font-semibold text-zinc-100">
+      <strong className="font-semibold text-zinc-900 dark:text-zinc-50">
         {children}
       </strong>
     ),
     table: ({ children }: any) => (
-      <div className="overflow-x-auto my-6 border border-zinc-800 rounded-lg">
-        <table className="min-w-full divide-y divide-zinc-800 text-sm text-left">
+      <div className="overflow-x-auto my-6 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900">
+        <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-800 text-sm text-left">
           {children}
         </table>
       </div>
     ),
-    thead: ({ children }: any) => <thead className="bg-zinc-900/50 text-zinc-300 font-medium">{children}</thead>,
-    tbody: ({ children }: any) => <tbody className="divide-y divide-zinc-800 text-zinc-400">{children}</tbody>,
-    tr: ({ children }: any) => <tr className="hover:bg-zinc-900/20 transition-colors">{children}</tr>,
-    th: ({ children }: any) => <th className="px-4 py-3 font-medium">{children}</th>,
+    thead: ({ children }: any) => <thead className="bg-zinc-50 dark:bg-zinc-800/50 text-zinc-700 dark:text-zinc-300 font-semibold border-b border-zinc-200 dark:border-zinc-800">{children}</thead>,
+    tbody: ({ children }: any) => <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800 text-zinc-700 dark:text-zinc-300">{children}</tbody>,
+    tr: ({ children }: any) => <tr className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20 transition-colors">{children}</tr>,
+    th: ({ children }: any) => <th className="px-4 py-3 font-semibold">{children}</th>,
     td: ({ children }: any) => <td className="px-4 py-3 font-mono text-xs">{children}</td>,
   };
 
@@ -1595,41 +1700,41 @@ export default function Home() {
             </button>
 
             <div className="space-y-1">
-              <h2 className="text-lg font-bold text-maroon dark:text-gold flex items-center gap-2">
-                <Settings className="h-5 w-5 text-maroon dark:text-gold" />
+              <h2 className="text-base font-bold text-red-800 dark:text-red-400 flex items-center gap-2">
+                <Settings className="h-4 w-4 text-red-700 dark:text-red-400" />
                 Google Docs Integration Settings
               </h2>
-              <p className="text-xs text-zinc-550 dark:text-zinc-400">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
                 To automate document creation (opening Docs with the minutes content pre-populated), configure either Method A or Method B below.
               </p>
             </div>
 
-            <div className="space-y-6 divide-y divide-zinc-200 dark:divide-zinc-900">
+            <div className="space-y-6 divide-y divide-zinc-200 dark:divide-zinc-800">
               {/* Method A */}
               <div className="space-y-3 pt-1">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-maroon dark:text-gold">Method A: Google Apps Script (Recommended - No Cloud Setup)</h3>
-                  <span className="text-xxs px-2 py-0.5 rounded bg-maroon/10 dark:bg-gold/10 text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20 font-mono">Zero Config</span>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Method A: Google Apps Script (Recommended - No Cloud Setup)</h3>
+                  <span className="text-xxs px-2 py-0.5 rounded bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 border border-red-200 dark:border-red-900/40 font-mono">Zero Config</span>
                 </div>
-                <p className="text-xs text-zinc-550 dark:text-zinc-400 leading-normal">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">
                   Creates documents directly in your Google Drive using a simple Apps Script. No Google Cloud APIs or console setup required.
                 </p>
                 <div className="space-y-1.5">
-                  <label className="text-xs text-zinc-600 dark:text-zinc-450 font-medium">Google Apps Script Web App URL</label>
+                  <label className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">Google Apps Script Web App URL</label>
                   <input
                     type="text"
                     value={tempScriptUrl}
                     onChange={(e) => setTempScriptUrl(e.target.value)}
                     placeholder="https://script.google.com/macros/s/..."
-                    className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
+                    className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-red-700 dark:focus:border-red-500 transition shadow-2xs"
                   />
                 </div>
 
                 {/* Steps Accordion */}
-                <div className="bg-zinc-900/50 rounded-lg p-4 border border-zinc-900 space-y-3 text-xs">
-                  <span className="font-semibold text-zinc-300">Quick 3-Minute Setup Instructions:</span>
-                  <ol className="list-decimal pl-4 space-y-2 text-zinc-550 dark:text-zinc-450">
-                    <li>Go to <a href="https://script.google.com" target="_blank" rel="noreferrer" className="text-maroon dark:text-gold hover:underline">script.google.com</a> and click <strong>New Project</strong>.</li>
+                <div className="bg-zinc-50 dark:bg-zinc-900/50 rounded-lg p-4 border border-zinc-200 dark:border-zinc-800 space-y-3 text-xs">
+                  <span className="font-semibold text-zinc-800 dark:text-zinc-200">Quick 3-Minute Setup Instructions:</span>
+                  <ol className="list-decimal pl-4 space-y-2 text-zinc-600 dark:text-zinc-400">
+                    <li>Go to <a href="https://script.google.com" target="_blank" rel="noreferrer" className="text-red-700 dark:text-red-400 font-medium hover:underline">script.google.com</a> and click <strong>New Project</strong>.</li>
                     <li>
                       Replace the entire script with this code:
                       <div className="relative mt-1.5">
@@ -1664,7 +1769,7 @@ export default function Home() {
     var resData = JSON.parse(response.getContentText());
     if (resData.id) {
       var docUrl = "https://docs.google.com/document/d/" + resData.id + "/edit";
-      var redirectHtml = "<html><head><script>window.location.href='" + docUrl + "';</script></head><body style='font-family:Arial,sans-serif;background:#09090b;color:#a1a1aa;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;'><div>Redirecting to Google Doc...</div></body></html>";
+      var redirectHtml = "<html><head><script>window.location.href='" + docUrl + "';</script></head><body style='font-family:Arial,sans-serif;background:#ffffff;color:#18181b;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;'><div>Redirecting to Google Doc...</div></body></html>";
       return HtmlService.createHtmlOutput(redirectHtml);
     }
     return HtmlService.createHtmlOutput("Error: " + JSON.stringify(resData));
@@ -1672,7 +1777,7 @@ export default function Home() {
     return HtmlService.createHtmlOutput("Error: " + err.toString());
   }
 }`}
-                          className="w-full p-2 bg-zinc-50 dark:bg-zinc-950 border border-zinc-250 dark:border-zinc-800 rounded font-mono text-[10px] text-zinc-800 dark:text-zinc-300 focus:outline-none"
+                          className="w-full p-2 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded font-mono text-[10px] text-zinc-800 dark:text-zinc-300 focus:outline-none"
                         />
                       </div>
                     </li>
@@ -1685,26 +1790,26 @@ export default function Home() {
               {/* Method B */}
               <div className="space-y-3 pt-6">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-maroon dark:text-gold">Method B: Google Drive API (OAuth Consent Screen)</h3>
-                  <span className="text-xxs px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-900 text-zinc-550 dark:text-zinc-450 border border-zinc-250 dark:border-zinc-850 font-mono">Standard OAuth</span>
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Method B: Google Drive API (OAuth Consent Screen)</h3>
+                  <span className="text-xxs px-2 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700 font-mono">Standard OAuth</span>
                 </div>
-                <p className="text-xs text-zinc-550 dark:text-zinc-400 leading-normal">
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-normal">
                   Authorizes credentials natively in the browser. Requires creating a Google Cloud OAuth Client ID with Authorized JavaScript Origins set to your origin.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <label className="text-xs text-zinc-600 dark:text-zinc-450 font-medium">Google Client ID</label>
+                    <label className="text-xs text-zinc-600 dark:text-zinc-400 font-medium">Google Client ID</label>
                     <input
                       type="text"
                       value={tempClientId}
                       onChange={(e) => setTempClientId(e.target.value)}
                       placeholder="e.g. 12345-abcde.apps.googleusercontent.com"
-                      className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
+                      className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-red-700 dark:focus:border-red-500 transition shadow-2xs"
                     />
                   </div>
                   <div className="space-y-1.5 flex flex-col justify-end">
                     {accessToken ? (
-                      <div className="px-3 py-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-600 dark:text-emerald-450 text-xs flex items-center justify-between font-bold">
+                      <div className="px-3 py-2 rounded-lg border border-emerald-500/20 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-xs flex items-center justify-between font-bold">
                         <span>Signed in to Google</span>
                         <Check className="h-4 w-4" />
                       </div>
@@ -1712,9 +1817,9 @@ export default function Home() {
                       <button
                         onClick={handleGoogleSignIn}
                         disabled={!tempClientId}
-                        className="w-full py-2 px-3 rounded-lg border border-zinc-250 dark:border-zinc-800 hover:border-maroon dark:hover:border-gold bg-white dark:bg-zinc-900 text-xs font-semibold text-zinc-800 dark:text-zinc-200 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-2"
+                        className="w-full py-2 px-3 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-red-300 dark:hover:border-red-700 bg-white dark:bg-zinc-900 text-xs font-semibold text-zinc-800 dark:text-zinc-200 active:scale-95 disabled:opacity-50 transition flex items-center justify-center gap-2 shadow-2xs"
                       >
-                        <Sparkles className="h-3.5 w-3.5 text-maroon dark:text-gold" />
+                        <Sparkles className="h-3.5 w-3.5 text-red-700 dark:text-red-400" />
                         <span>Sign in with Google</span>
                       </button>
                     )}
@@ -1724,16 +1829,16 @@ export default function Home() {
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 border-t border-zinc-200 dark:border-zinc-900 pt-4">
+            <div className="flex items-center justify-end gap-3 border-t border-zinc-200 dark:border-zinc-800 pt-4">
               <button
                 onClick={() => setIsSettingsOpen(false)}
-                className="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-850 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-550 dark:text-zinc-400 transition"
+                className="px-4 py-2 rounded-lg bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xs font-semibold text-zinc-600 dark:text-zinc-400 transition"
               >
                 Cancel
               </button>
               <button
                 onClick={saveSettings}
-                className="px-4 py-2 rounded-lg bg-maroon dark:bg-gold hover:bg-maroon-dark dark:hover:bg-gold-light text-gold dark:text-maroon text-xs font-bold uppercase tracking-wider shadow-lg transition-all active:scale-95"
+                className="px-4 py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 text-xs font-bold uppercase tracking-wider shadow-xs transition-all active:scale-95"
               >
                 Save Integration Settings
               </button>
@@ -1745,31 +1850,31 @@ export default function Home() {
 
       {/* Main Container: Full-Height Flex Dashboard Layout */}
       <main className="flex-1 flex flex-col md:flex-row md:h-screen md:overflow-hidden">
-        {/* Far-Left Navigation Sidebar (w-16 Default, hover expands to w-56 with text names) */}
-        <aside className="w-full md:w-16 hover:md:w-56 bg-maroon dark:bg-[#150709] border-b md:border-b-0 md:border-r border-white/10 dark:border-white/5 flex md:flex-col items-center justify-around md:justify-start py-3 md:py-6 gap-3 md:gap-6 shrink-0 z-30 shadow-lg md:h-full group transition-all duration-300 ease-in-out overflow-hidden px-3">
+        {/* Far-Left Navigation Sidebar (Clean Minimal White with subtle Red font accents) */}
+        <aside className="w-full md:w-16 hover:md:w-56 bg-white dark:bg-zinc-950 border-b md:border-b-0 md:border-r border-zinc-200 dark:border-zinc-800 flex md:flex-col items-center justify-around md:justify-start py-3 md:py-6 gap-3 md:gap-5 shrink-0 z-30 md:h-full group transition-all duration-300 ease-in-out overflow-hidden px-3 shadow-xs">
           
           {/* Top Logo */}
-          <div className="hidden md:flex items-center w-full bg-white/10 border border-white/10 p-2.5 rounded-xl shadow-sm text-gold mb-2 whitespace-nowrap">
-            <Sparkles className="h-5 w-5 shrink-0 animate-pulse text-gold" />
-            <span className="ml-3 text-xs font-bold font-sans tracking-wide text-gold opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
-              SECRETARY AI
+          <div className="hidden md:flex items-center w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-xl shadow-xs mb-2 whitespace-nowrap">
+            <Sparkles className="h-5 w-5 shrink-0 text-red-700 dark:text-red-400" />
+            <span className="ml-3 text-xs font-bold font-sans tracking-wider text-zinc-900 dark:text-zinc-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+              SECRETARY <span className="text-red-700 dark:text-red-400 font-extrabold">AI</span>
             </span>
           </div>
 
           {/* Middle Navigation Buttons */}
-          <div className="flex md:flex-col gap-3 md:gap-5 w-full">
+          <div className="flex md:flex-col gap-2 md:gap-3 w-full">
             <button 
               type="button"
               onClick={() => setActiveSidebarTab('workspace')} 
-              title="Workspace & Raw Notes" 
-              className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 active:scale-90 whitespace-nowrap ${
+              title="Workspace & Shorthand Notes" 
+              className={`flex items-center w-full p-2.5 rounded-xl transition-all duration-200 active:scale-95 whitespace-nowrap text-xs ${
                 activeSidebarTab === 'workspace' 
-                  ? 'bg-white/10 text-gold border border-white/10 shadow-inner font-semibold' 
-                  : 'text-gold/60 hover:bg-white/5 hover:text-gold border border-transparent'
+                  ? 'bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-900/50 shadow-xs font-semibold' 
+                  : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent'
               }`}
             >
-              <Layers className="h-5 w-5 shrink-0" />
-              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+              <Layers className="h-4.5 w-4.5 shrink-0" />
+              <span className="ml-3 font-semibold tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
                 Workspace
               </span>
             </button>
@@ -1777,14 +1882,14 @@ export default function Home() {
               type="button"
               onClick={() => setActiveSidebarTab('metadata')} 
               title="Meeting Metadata & Signatories" 
-              className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 active:scale-90 whitespace-nowrap ${
+              className={`flex items-center w-full p-2.5 rounded-xl transition-all duration-200 active:scale-95 whitespace-nowrap text-xs ${
                 activeSidebarTab === 'metadata' 
-                  ? 'bg-white/10 text-gold border border-white/10 shadow-inner font-semibold' 
-                  : 'text-gold/60 hover:bg-white/5 hover:text-gold border border-transparent'
+                  ? 'bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-900/50 shadow-xs font-semibold' 
+                  : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent'
               }`}
             >
-              <Users className="h-5 w-5 shrink-0" />
-              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+              <Users className="h-4.5 w-4.5 shrink-0" />
+              <span className="ml-3 font-semibold tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
                 Meeting Info
               </span>
             </button>
@@ -1792,30 +1897,30 @@ export default function Home() {
               type="button"
               onClick={() => setActiveSidebarTab('audio')} 
               title="Audio Transcription & Dictation" 
-              className={`flex items-center w-full p-3 rounded-xl transition-all duration-200 active:scale-90 whitespace-nowrap ${
+              className={`flex items-center w-full p-2.5 rounded-xl transition-all duration-200 active:scale-95 whitespace-nowrap text-xs ${
                 activeSidebarTab === 'audio' 
-                  ? 'bg-white/10 text-gold border border-white/10 shadow-inner font-semibold' 
-                  : 'text-gold/60 hover:bg-white/5 hover:text-gold border border-transparent'
+                  ? 'bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-900/50 shadow-xs font-semibold' 
+                  : 'text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-transparent'
               }`}
             >
-              <Mic className="h-5 w-5 shrink-0" />
-              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+              <Mic className="h-4.5 w-4.5 shrink-0" />
+              <span className="ml-3 font-semibold tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
                 Audio & Voice
               </span>
             </button>
           </div>
 
           {/* Bottom Actions */}
-          <div className="flex md:flex-col items-center gap-3 md:gap-5 mt-auto w-full">
+          <div className="flex md:flex-col items-center gap-2 md:gap-3 mt-auto w-full">
             {/* Collapse/Expand Drawer Toggle (Desktop Only) */}
             <button 
               type="button"
               onClick={() => setIsDrawerCollapsed(!isDrawerCollapsed)} 
               title={isDrawerCollapsed ? "Expand Input Panel" : "Collapse Input Panel"} 
-              className="hidden md:flex items-center w-full p-3 rounded-xl hover:bg-white/5 text-gold/60 hover:text-gold active:scale-90 border border-transparent transition-all shadow-none whitespace-nowrap"
+              className="hidden md:flex items-center w-full p-2.5 rounded-xl text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 active:scale-95 border border-transparent transition-all whitespace-nowrap text-xs"
             >
-              {isDrawerCollapsed ? <ChevronRight className="h-5 w-5 shrink-0" /> : <ChevronLeft className="h-5 w-5 shrink-0" />}
-              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+              {isDrawerCollapsed ? <ChevronRight className="h-4.5 w-4.5 shrink-0" /> : <ChevronLeft className="h-4.5 w-4.5 shrink-0" />}
+              <span className="ml-3 font-semibold tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
                 {isDrawerCollapsed ? 'Expand Panel' : 'Collapse Panel'}
               </span>
             </button>
@@ -1825,11 +1930,11 @@ export default function Home() {
               type="button"
               onClick={toggleTheme} 
               title="Toggle Light/Dark Theme" 
-              className="flex items-center w-full p-3 rounded-xl hover:bg-white/5 text-gold/60 hover:text-gold active:scale-90 border border-transparent transition-all whitespace-nowrap"
+              className="flex items-center w-full p-2.5 rounded-xl text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 active:scale-95 border border-transparent transition-all whitespace-nowrap text-xs"
             >
-              {theme === 'dark' ? <Sun className="h-5 w-5 shrink-0" /> : <Moon className="h-5 w-5 shrink-0" />}
-              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
-                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              {theme === 'dark' ? <Sun className="h-4.5 w-4.5 shrink-0" /> : <Moon className="h-4.5 w-4.5 shrink-0" />}
+              <span className="ml-3 font-semibold tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+                {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
               </span>
             </button>
 
@@ -1838,14 +1943,13 @@ export default function Home() {
               type="button"
               onClick={() => setIsSettingsOpen(true)} 
               title="Integration Settings & Gemini status" 
-              className="flex items-center w-full p-3 rounded-xl hover:bg-white/5 text-gold/60 hover:text-gold active:scale-90 border border-transparent transition-all relative whitespace-nowrap"
+              className="flex items-center w-full p-2.5 rounded-xl text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-900 active:scale-95 border border-transparent transition-all relative whitespace-nowrap text-xs"
             >
-              <Settings className="h-5 w-5 shrink-0" />
-              <span className="ml-3 text-xs font-bold font-sans tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
+              <Settings className="h-4.5 w-4.5 shrink-0" />
+              <span className="ml-3 font-semibold tracking-wide opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
                 Settings
               </span>
-              {/* Green connection status pulse */}
-              <span className="absolute top-2.5 left-6 flex h-2 w-2">
+              <span className="absolute top-2 left-6 flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
@@ -1854,14 +1958,14 @@ export default function Home() {
         </aside>
 
         {/* Mobile Segmented Toggle */}
-        <div className="flex md:hidden bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-900 p-2 gap-2 sticky top-0 z-20 shadow-sm shrink-0">
+        <div className="flex md:hidden bg-white dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-850 p-2 gap-2 sticky top-0 z-20 shadow-xs shrink-0">
           <button 
             type="button"
             onClick={() => setMobileTab('editor')}
-            className={`flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all active:scale-95 ${
+            className={`flex-1 text-center py-2 text-xs font-semibold rounded-lg transition-all active:scale-95 ${
               mobileTab === 'editor' 
-                ? 'bg-zinc-100 dark:bg-zinc-900 text-maroon dark:text-gold border border-zinc-200 dark:border-zinc-800 shadow-sm' 
-                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-350'
+                ? 'bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-900/50 shadow-xs' 
+                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
             }`}
           >
             Configure
@@ -1869,10 +1973,10 @@ export default function Home() {
           <button 
             type="button"
             onClick={() => setMobileTab('preview')}
-            className={`flex-1 text-center py-2 text-xs font-bold rounded-lg transition-all active:scale-95 ${
+            className={`flex-1 text-center py-2 text-xs font-semibold rounded-lg transition-all active:scale-95 ${
               mobileTab === 'preview' 
-                ? 'bg-zinc-100 dark:bg-zinc-900 text-maroon dark:text-gold border border-zinc-200 dark:border-zinc-800 shadow-sm' 
-                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-350'
+                ? 'bg-red-50 dark:bg-red-950/30 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-900/50 shadow-xs' 
+                : 'text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300'
             }`}
           >
             MoM Preview
@@ -1880,19 +1984,53 @@ export default function Home() {
         </div>
 
         {/* Center Column: Active Feature Panel */}
-        <section className={`w-full md:w-[440px] h-auto md:h-full p-6 border-b md:border-b-0 md:border-r border-zinc-200 dark:border-zinc-900 bg-white dark:bg-[#101216] shrink-0 flex-col justify-between ${
+        <section className={`w-full md:w-[440px] h-auto md:h-full p-6 border-b md:border-b-0 md:border-r border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/60 dark:bg-[#0c0d10] shrink-0 flex-col justify-between ${
           isDrawerCollapsed ? 'hidden' : (mobileTab === 'editor' ? 'flex' : 'hidden md:flex')
         }`}>
           <div className="flex-1 flex flex-col min-h-0 overflow-y-auto space-y-6">
             
             {activeSidebarTab === 'workspace' && (
-              <div className="space-y-6 flex-1 flex flex-col min-h-0">
+              <div className="space-y-5 flex-1 flex flex-col min-h-0">
+                {/* Granola-inspired Meeting Recipes / Presets */}
+                <div className="space-y-2.5 bg-white dark:bg-zinc-900/80 p-3.5 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-xs">
+                  <div className="flex items-center justify-between border-b border-zinc-100 dark:border-zinc-800 pb-2">
+                    <div className="flex items-center gap-1.5">
+                      <Sparkles className="h-4 w-4 text-red-700 dark:text-red-400" />
+                      <h2 className="text-xs font-bold uppercase tracking-wider text-red-800 dark:text-red-400">Meeting Recipes</h2>
+                    </div>
+                    <span className="text-[10px] text-zinc-400 font-mono">1-Click Presets</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-1.5">
+                    {(['legislative', 'executive', 'special'] as MeetingRecipe[]).map((recipeKey) => (
+                      <button
+                        key={recipeKey}
+                        type="button"
+                        onClick={() => handleApplyRecipe(recipeKey)}
+                        className={`py-1.5 px-2 rounded-lg text-center transition active:scale-95 text-xs font-semibold border ${
+                          activeRecipe === recipeKey
+                            ? 'bg-red-50 dark:bg-red-950/40 text-red-800 dark:text-red-300 border-red-200 dark:border-red-900/60 shadow-xs'
+                            : 'bg-zinc-50 dark:bg-zinc-800/60 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-750 hover:bg-zinc-100 dark:hover:bg-zinc-800'
+                        }`}
+                      >
+                        <span className="block truncate text-[11px]">
+                          {recipeKey === 'legislative' && '🏛️ Legislative'}
+                          {recipeKey === 'executive' && '📋 Executive'}
+                          {recipeKey === 'special' && '🚨 Emergency'}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-tight">
+                    {recipeTemplates[activeRecipe].description}
+                  </p>
+                </div>
+
                 {/* Quick Test Samples */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-900 pb-2">
-                    <div className="flex items-center gap-2">
-                      <FileCheck className="h-4 w-4 text-maroon dark:text-gold" />
-                      <h2 className="text-xs font-semibold uppercase tracking-wider text-maroon dark:text-gold">Quick Test Samples</h2>
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-1.5">
+                    <div className="flex items-center gap-1.5">
+                      <FileCheck className="h-3.5 w-3.5 text-red-700 dark:text-red-400" />
+                      <h2 className="text-xs font-bold uppercase tracking-wider text-red-800 dark:text-red-400">Quick Test Samples</h2>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-2">
@@ -1901,23 +2039,23 @@ export default function Home() {
                         key={idx}
                         type="button"
                         onClick={() => handleLoadSample(sample.fileName)}
-                        className="flex flex-col text-left p-3 rounded-lg border border-zinc-200 dark:border-zinc-900 bg-zinc-50 dark:bg-zinc-900/50 hover:bg-zinc-100 dark:hover:bg-zinc-900 active:scale-98 transition text-[10px] group"
+                        className="flex flex-col text-left p-2.5 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/70 hover:border-zinc-350 dark:hover:border-zinc-700 hover:shadow-xs active:scale-98 transition text-[10px] group"
                       >
-                        <span className="font-semibold text-zinc-800 dark:text-zinc-300 group-hover:text-maroon dark:group-hover:text-gold transition mb-0.5 flex items-center justify-between w-full uppercase">
+                        <span className="font-semibold text-zinc-800 dark:text-zinc-200 group-hover:text-red-700 dark:group-hover:text-red-400 transition mb-0.5 flex items-center justify-between w-full uppercase">
                           {sample.displayName.replace(' Meeting', '')}
-                          <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-all animate-fade-in" />
+                          <ArrowRight className="h-3 w-3 text-red-700 dark:text-red-400 opacity-0 group-hover:opacity-100 transition-all animate-fade-in" />
                         </span>
-                        <span className="text-[9px] text-zinc-555 dark:text-zinc-500 leading-normal truncate w-full">{sample.description}</span>
+                        <span className="text-[9px] text-zinc-500 leading-normal truncate w-full">{sample.description}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* Drag & Drop File Zone */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-900 pb-2">
-                    <Upload className="h-4 w-4 text-maroon dark:text-gold" />
-                    <h2 className="text-xs font-semibold uppercase tracking-wider text-maroon dark:text-gold">Document Upload</h2>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-1.5 border-b border-zinc-200 dark:border-zinc-800 pb-1.5">
+                    <Upload className="h-3.5 w-3.5 text-red-700 dark:text-red-400" />
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-red-800 dark:text-red-400">Document Upload</h2>
                   </div>
                   
                   <div
@@ -1925,12 +2063,12 @@ export default function Home() {
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                     onClick={() => fileInputRef.current?.click()}
-                    className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition flex flex-col items-center justify-center min-h-[90px] ${
+                    className={`border-2 border-dashed rounded-xl p-4 text-center cursor-pointer transition flex flex-col items-center justify-center min-h-[85px] ${
                       isDragActive 
-                        ? 'border-maroon bg-maroon/5 dark:border-gold dark:bg-gold/5' 
+                        ? 'border-red-600 bg-red-50/50 dark:border-red-500 dark:bg-red-950/20' 
                         : uploadedFile 
-                          ? 'border-emerald-800/80 bg-emerald-50/5 dark:bg-emerald-950/5' 
-                          : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 bg-zinc-50/50 dark:bg-zinc-900/10'
+                          ? 'border-emerald-600/50 bg-emerald-50/40 dark:bg-emerald-950/20' 
+                          : 'border-zinc-200 dark:border-zinc-800 hover:border-zinc-350 dark:hover:border-zinc-700 bg-white dark:bg-zinc-900/40 shadow-2xs'
                     }`}
                   >
                     <input
@@ -1943,28 +2081,29 @@ export default function Home() {
 
                     {uploading ? (
                       <div className="flex flex-col items-center gap-1.5 text-zinc-400">
-                        <RefreshCw className="h-5 w-5 text-maroon dark:text-gold animate-spin" />
-                        <span className="text-xs font-semibold">Reading...</span>
+                        <RefreshCw className="h-5 w-5 text-red-700 dark:text-red-400 animate-spin" />
+                        <span className="text-xs font-semibold">Reading document...</span>
                       </div>
                     ) : uploadedFile ? (
                       <div className="flex flex-col items-center gap-1">
-                        <FileCheck className="h-5 w-5 text-emerald-400" />
-                        <span className="text-xs font-semibold text-zinc-200 truncate max-w-[200px]">{uploadedFile.name}</span>
+                        <FileCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                        <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200 truncate max-w-[200px]">{uploadedFile.name}</span>
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             clearFile();
                           }}
-                          className="mt-1 px-2.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-[10px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1 transition"
+                          className="mt-1 px-2.5 py-0.5 rounded bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 text-[10px] text-zinc-600 dark:text-zinc-400 flex items-center gap-1 transition"
                         >
                           <Trash2 className="h-3 w-3" /> Clear
                         </button>
                       </div>
                     ) : (
-                      <div className="flex flex-col items-center gap-1.5">
-                        <Upload className="h-5 w-5 text-zinc-500" />
-                        <span className="text-xs font-semibold text-zinc-550 dark:text-zinc-300">Drag & drop .docx file or click</span>
+                      <div className="flex flex-col items-center gap-1">
+                        <Upload className="h-4.5 w-4.5 text-zinc-400" />
+                        <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Upload existing .docx minutes or notes</span>
+                        <span className="text-[10px] text-zinc-400">Click or drag & drop</span>
                       </div>
                     )}
                   </div>
@@ -1973,126 +2112,128 @@ export default function Home() {
                 {/* Raw Notes box */}
                 <div className="space-y-1.5 flex-1 flex flex-col min-h-0">
                   <div className="flex items-center justify-between">
-                    <label htmlFor="raw-notes-input" className="text-xs font-semibold text-maroon dark:text-gold uppercase tracking-wider">Raw Unstructured Notes</label>
-                    <div className="text-[10px] text-zinc-500 font-bold font-mono">
+                    <label htmlFor="raw-notes-input" className="text-xs font-bold text-red-800 dark:text-red-400 uppercase tracking-wider">
+                      Meeting Notes / Fast Shorthand
+                    </label>
+                    <div className="text-[10px] text-zinc-400 font-medium font-mono">
                       {rawNotes ? `${rawNotes.split(/\s+/).filter(Boolean).length} words` : 'Empty'}
                     </div>
                   </div>
                   <textarea
                     id="raw-notes-input"
-                    placeholder="Paste or type unorganized notes, transcripts, agenda topics, and raw details here..."
+                    placeholder="Type or paste your raw notes, assembly shorthand, transcript, or agenda items here..."
                     value={rawNotes}
                     onChange={(e) => setRawNotes(e.target.value)}
-                    className="w-full flex-1 min-h-[180px] p-3 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-200 font-sans focus:outline-none focus:border-maroon focus:ring-1 focus:ring-maroon dark:focus:border-gold dark:focus:ring-gold transition resize-none placeholder-zinc-400 dark:placeholder-zinc-650 shadow-inner"
+                    className="w-full flex-1 min-h-[190px] p-3 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-200 font-sans focus:outline-none focus:border-red-700 focus:ring-1 focus:ring-red-700 dark:focus:border-red-500 dark:focus:ring-red-500 transition resize-none placeholder-zinc-400 dark:placeholder-zinc-600 shadow-2xs leading-relaxed"
                   />
                 </div>
               </div>
             )}
 
             {activeSidebarTab === 'metadata' && (
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-900 pb-2">
-                    <Layers className="h-4 w-4 text-maroon dark:text-gold" />
-                    <h2 className="text-xs font-semibold uppercase tracking-wider text-maroon dark:text-gold">Meeting Details</h2>
+              <div className="space-y-5">
+                <div className="space-y-3.5">
+                  <div className="flex items-center gap-1.5 border-b border-zinc-200 dark:border-zinc-800 pb-1.5">
+                    <Layers className="h-3.5 w-3.5 text-red-700 dark:text-red-400" />
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-red-800 dark:text-red-400">Meeting Details</h2>
                   </div>
                   
                   <div className="space-y-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-450 flex items-center gap-1.5" htmlFor="meeting-title">
+                      <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-title">
                         <FileText className="h-3 w-3" /> Meeting Title
                       </label>
                       <input
                         id="meeting-title"
                         type="text"
-                        placeholder="e.g., Q3 Planning & Budget Review"
+                        placeholder="e.g., 2nd Legislative Meeting"
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-red-700 dark:focus:border-red-500 transition shadow-2xs"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-450 flex items-center gap-1.5" htmlFor="meeting-date">
+                      <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-date">
                         <Calendar className="h-3 w-3" /> Date & Time
                       </label>
                       <input
                         id="meeting-date"
                         type="text"
-                        placeholder="e.g., July 8, 2026 at 2:00 PM"
+                        placeholder="e.g., October 16, 2026 at 2:00 PM"
                         value={date}
                         onChange={(e) => setDate(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-red-700 dark:focus:border-red-500 transition shadow-2xs"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-450 flex items-center gap-1.5" htmlFor="meeting-chair">
-                        <User className="h-3 w-3" /> Chairperson
+                      <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-chair">
+                        <User className="h-3 w-3" /> Presiding Officer / Chair
                       </label>
                       <input
                         id="meeting-chair"
                         type="text"
-                        placeholder="e.g., Clara Oswald (CEO)"
+                        placeholder="e.g., Hon. Juan Dela Cruz"
                         value={chair}
                         onChange={(e) => setChair(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-red-700 dark:focus:border-red-500 transition shadow-2xs"
                       />
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-xs font-semibold text-zinc-600 dark:text-zinc-450 flex items-center gap-1.5" htmlFor="meeting-secretary">
+                      <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400 flex items-center gap-1.5" htmlFor="meeting-secretary">
                         <Users className="h-3 w-3" /> Secretary / Note Taker
                       </label>
                       <input
                         id="meeting-secretary"
                         type="text"
-                        placeholder="e.g., John Smith"
+                        placeholder="e.g., Hon. Maria Santos"
                         value={secretary}
                         onChange={(e) => setSecretary(e.target.value)}
-                        className="w-full px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold transition"
+                        className="w-full px-3 py-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-xs text-zinc-800 dark:text-zinc-100 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-red-700 dark:focus:border-red-500 transition shadow-2xs"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Signatories Configuration Section */}
-                <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-zinc-900">
+                <div className="space-y-3 pt-3 border-t border-zinc-200 dark:border-zinc-800">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-maroon dark:text-gold" />
-                      <span className="text-xs font-semibold uppercase tracking-wider text-maroon dark:text-gold">Custom Signatories</span>
+                    <div className="flex items-center gap-1.5">
+                      <Users className="h-3.5 w-3.5 text-red-700 dark:text-red-400" />
+                      <span className="text-xs font-bold uppercase tracking-wider text-red-800 dark:text-red-400">Custom Signatories</span>
                     </div>
                     <button
                       type="button"
                       onClick={handleAddSignatory}
-                      className="text-xxs px-2 py-0.5 rounded bg-maroon/10 hover:bg-maroon/20 text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20 font-bold transition flex items-center gap-1"
+                      className="text-xxs px-2 py-0.5 rounded-md bg-red-50 dark:bg-red-950/40 hover:bg-red-100 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-900/50 font-bold transition flex items-center gap-1 shadow-2xs"
                     >
                       <Plus className="h-3 w-3" /> Add
                     </button>
                   </div>
                   <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
                     {signatories.map((sig, idx) => (
-                      <div key={idx} className="flex gap-2 items-center bg-zinc-50 dark:bg-zinc-900/40 p-2 rounded-lg border border-zinc-200 dark:border-zinc-900 relative group">
+                      <div key={idx} className="flex gap-2 items-center bg-white dark:bg-zinc-900 p-2 rounded-lg border border-zinc-200 dark:border-zinc-800 relative group shadow-2xs">
                         <div className="grid grid-cols-3 gap-2 flex-1">
                           <input
                             type="text"
                             placeholder="Label"
-                            className="px-2 py-1 text-[10px] rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-205 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold"
+                            className="px-2 py-1 text-[10px] rounded bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-red-700 dark:focus:border-red-500"
                             value={sig.label}
                             onChange={(e) => handleSignatoryChange(idx, 'label', e.target.value)}
                           />
                           <input
                             type="text"
                             placeholder="Full Name"
-                            className="px-2 py-1 text-[10px] rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-205 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold"
+                            className="px-2 py-1 text-[10px] rounded bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-red-700 dark:focus:border-red-500"
                             value={sig.name}
                             onChange={(e) => handleSignatoryChange(idx, 'name', e.target.value)}
                           />
                           <input
                             type="text"
                             placeholder="Title/Role"
-                            className="px-2 py-1 text-[10px] rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-205 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-maroon dark:focus:border-gold"
+                            className="px-2 py-1 text-[10px] rounded bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 text-zinc-800 dark:text-zinc-200 placeholder-zinc-400 dark:placeholder-zinc-600 focus:outline-none focus:border-red-700 dark:focus:border-red-500"
                             value={sig.role}
                             onChange={(e) => handleSignatoryChange(idx, 'role', e.target.value)}
                           />
@@ -2100,7 +2241,7 @@ export default function Home() {
                         <button
                           type="button"
                           onClick={() => handleRemoveSignatory(idx)}
-                          className="p-1 text-red-500 hover:bg-red-500/10 rounded transition active:scale-95"
+                          className="p-1 text-zinc-400 hover:text-red-600 rounded transition active:scale-95"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
@@ -2112,50 +2253,50 @@ export default function Home() {
             )}
 
             {activeSidebarTab === 'audio' && (
-              <div className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 border-b border-zinc-200 dark:border-zinc-900 pb-2">
-                    <Mic className="h-4 w-4 text-maroon dark:text-gold" />
-                    <h2 className="text-xs font-semibold uppercase tracking-wider text-maroon dark:text-gold">Voice & Audio Transcription</h2>
+              <div className="space-y-5">
+                <div className="space-y-3.5">
+                  <div className="flex items-center gap-1.5 border-b border-zinc-200 dark:border-zinc-800 pb-1.5">
+                    <Mic className="h-3.5 w-3.5 text-red-700 dark:text-red-400" />
+                    <h2 className="text-xs font-bold uppercase tracking-wider text-red-800 dark:text-red-400">Voice & Audio Transcription</h2>
                   </div>
-                  <p className="text-xs text-zinc-555 dark:text-zinc-400 leading-relaxed">
+                  <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
                     Convert speech and recordings directly to raw meeting notes text. Record live meetings via dictation or upload audio files for AI transcription.
                   </p>
 
                   {/* Live Recording Card */}
-                  <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-3 w-full">
-                    <div className="bg-maroon/10 p-3 rounded-full text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20">
-                      <Mic className="h-6 w-6" />
+                  <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-2.5 w-full shadow-2xs">
+                    <div className="bg-red-50 dark:bg-red-950/40 p-2.5 rounded-full text-red-700 dark:text-red-400 border border-red-200/50 dark:border-red-900/40">
+                      <Mic className="h-5 w-5" />
                     </div>
-                    <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">Live Meeting Dictation</span>
-                    <span className="text-[10px] text-zinc-555 dark:text-zinc-500 text-center max-w-[250px]">Dictate directly to the browser. Appends transcripts in real-time.</span>
+                    <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">Live Meeting Dictation</span>
+                    <span className="text-[10px] text-zinc-500 text-center max-w-[250px]">Dictate directly in the browser to append transcripts in real-time.</span>
                     <button 
                       type="button"
                       onClick={toggleMicrophone} 
-                      className={`w-full py-2 px-4 rounded-xl text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5 ${
+                      className={`w-full py-2 px-4 rounded-lg text-xs font-semibold shadow-2xs transition flex items-center justify-center gap-1.5 ${
                         isRecording 
                           ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse' 
-                          : 'bg-maroon dark:bg-gold hover:bg-maroon-dark dark:hover:bg-gold-light text-gold dark:text-maroon'
+                          : 'bg-zinc-900 hover:bg-zinc-800 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-900'
                       }`}
                     >
-                      {isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                      {isRecording ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
                       {isRecording ? 'Stop Recording' : 'Start Recording'}
                     </button>
                   </div>
 
                   {/* Audio File Upload Card */}
-                  <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-3 w-full">
-                    <div className="bg-maroon/10 p-3 rounded-full text-maroon dark:text-gold border border-maroon/20 dark:border-gold/20">
-                      <FileAudio className="h-6 w-6" />
+                  <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 flex flex-col items-center gap-2.5 w-full shadow-2xs">
+                    <div className="bg-red-50 dark:bg-red-950/40 p-2.5 rounded-full text-red-700 dark:text-red-400 border border-red-200/50 dark:border-red-900/40">
+                      <FileAudio className="h-5 w-5" />
                     </div>
-                    <span className="text-xs font-semibold text-zinc-800 dark:text-zinc-200">AI File Transcription</span>
-                    <span className="text-[10px] text-zinc-555 dark:text-zinc-500 text-center max-w-[250px]">Upload meeting audio (MP3/WAV/M4A) to transcribe with Gemini AI.</span>
+                    <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100">AI File Transcription</span>
+                    <span className="text-[10px] text-zinc-500 text-center max-w-[250px]">Upload meeting audio (MP3/WAV/M4A) to transcribe with Gemini AI.</span>
                     <button 
                       type="button"
                       onClick={() => audioInputRef.current?.click()} 
-                      className="w-full py-2 px-4 rounded-xl border border-maroon text-maroon dark:text-gold font-bold text-xs hover:bg-maroon/5 dark:hover:bg-gold/10 transition flex items-center justify-center gap-1.5"
+                      className="w-full py-2 px-4 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-zinc-350 text-zinc-800 dark:text-zinc-200 font-semibold text-xs hover:bg-zinc-50 dark:hover:bg-zinc-850 transition flex items-center justify-center gap-1.5 shadow-2xs"
                     >
-                      <Upload className="h-4 w-4" /> Select Audio File
+                      <Upload className="h-3.5 w-3.5 text-zinc-500" /> Select Audio File
                     </button>
                     <input
                       ref={audioInputRef}
@@ -2172,36 +2313,36 @@ export default function Home() {
           </div>
 
           {/* Dashboard Footer Actions (Always Visible) */}
-          <div className="space-y-4 pt-4 border-t border-zinc-200 dark:border-zinc-900 mt-auto shrink-0 bg-transparent">
+          <div className="space-y-3 pt-3.5 border-t border-zinc-200 dark:border-zinc-800/80 mt-auto shrink-0 bg-transparent">
             {/* Feedback Messages */}
             {error && (
-              <div className="p-3 bg-red-950/30 border border-red-900/50 text-red-400 rounded-lg text-xs flex items-start gap-2.5 animate-fade-in">
+              <div className="p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 text-red-700 dark:text-red-400 rounded-lg text-xs flex items-start gap-2.5 animate-fade-in shadow-2xs">
                 <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>{error}</span>
               </div>
             )}
 
             {success && (
-              <div className="p-3 bg-emerald-950/30 border border-emerald-900/50 text-emerald-400 rounded-lg text-xs flex items-start gap-2.5 animate-fade-in">
+              <div className="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/50 text-emerald-700 dark:text-emerald-400 rounded-lg text-xs flex items-start gap-2.5 animate-fade-in shadow-2xs">
                 <Check className="h-4 w-4 shrink-0 mt-0.5" />
                 <span>{success}</span>
               </div>
             )}
 
-            {/* Generate Button */}
+            {/* Generate Button - Minimal Sleek High-Contrast with red sparkle */}
             <button
               onClick={handleGenerateMinutes}
               disabled={isLoading || !rawNotes.trim()}
-              className="w-full py-3 px-4 rounded-xl bg-maroon dark:bg-gold hover:bg-maroon-dark dark:hover:bg-gold-light text-gold dark:text-maroon font-bold disabled:bg-zinc-100 dark:disabled:bg-zinc-900 disabled:text-zinc-400 dark:disabled:text-zinc-650 disabled:cursor-not-allowed transition duration-200 active:scale-99 shadow-lg flex items-center justify-center gap-2 uppercase tracking-wider"
+              className="w-full py-3 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-850 dark:bg-white dark:hover:bg-zinc-100 text-white dark:text-zinc-950 font-bold disabled:bg-zinc-100 dark:disabled:bg-zinc-900 disabled:text-zinc-400 dark:disabled:text-zinc-650 disabled:cursor-not-allowed transition duration-200 active:scale-99 shadow-xs flex items-center justify-center gap-2 uppercase tracking-wider text-xs"
             >
               {isLoading ? (
                 <>
-                  <RefreshCw className="h-4 w-4 animate-spin text-gold dark:text-maroon" />
+                  <RefreshCw className="h-4 w-4 animate-spin text-red-500 dark:text-red-600" />
                   <span>AI Secretary is writing minutes...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="h-4 w-4 text-gold dark:text-maroon" />
+                  <Sparkles className="h-4 w-4 text-red-500 dark:text-red-600" />
                   <span>Generate structured MoM</span>
                 </>
               )}
@@ -2209,20 +2350,20 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Right Panel: Live Preview & Export */}
-        <section className={`flex-1 h-auto md:h-full flex flex-col bg-zinc-50 dark:bg-[#0d0e12] relative ${mobileTab === 'preview' ? 'flex' : 'hidden md:flex'}`}>
+        {/* Right Panel: Live Preview & Export (Minimal White Canvas) */}
+        <section className={`flex-1 h-auto md:h-full flex flex-col bg-zinc-100/50 dark:bg-[#0a0a0c] relative ${mobileTab === 'preview' ? 'flex' : 'hidden md:flex'}`}>
           
           {/* Header toolbar */}
-          <div className="border-b border-zinc-200 dark:border-zinc-900 px-6 py-4 flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#101216]/50">
+          <div className="border-b border-zinc-200 dark:border-zinc-800 px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-zinc-900 shadow-2xs">
             {/* View Switcher Tabs */}
-            <div className="flex bg-zinc-100 dark:bg-[#13151a] p-1 rounded-lg border border-zinc-200 dark:border-zinc-800">
+            <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-lg border border-zinc-200 dark:border-zinc-700">
               <button
                 onClick={() => setActiveTab('preview')}
                 disabled={!minutes}
-                className={`px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition ${
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
                   activeTab === 'preview' 
-                    ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm border border-zinc-200/60 dark:border-zinc-800' 
-                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed'
+                    ? 'bg-white dark:bg-zinc-900 text-red-800 dark:text-red-400 shadow-2xs border border-zinc-200/80 dark:border-zinc-700 font-bold' 
+                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed'
                 }`}
               >
                 <Eye className="h-3.5 w-3.5" /> Formatted Minutes
@@ -2230,10 +2371,10 @@ export default function Home() {
               <button
                 onClick={() => setActiveTab('edit')}
                 disabled={!minutes}
-                className={`px-3 py-1.5 rounded text-xs font-semibold flex items-center gap-1.5 transition ${
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold flex items-center gap-1.5 transition ${
                   activeTab === 'edit' 
-                    ? 'bg-white dark:bg-zinc-900 text-zinc-900 dark:text-white shadow-sm border border-zinc-200/60 dark:border-zinc-800' 
-                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 disabled:opacity-50 disabled:cursor-not-allowed'
+                    ? 'bg-white dark:bg-zinc-900 text-red-800 dark:text-red-400 shadow-2xs border border-zinc-200/80 dark:border-zinc-700 font-bold' 
+                    : 'text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-300 disabled:opacity-40 disabled:cursor-not-allowed'
                 }`}
               >
                 <Edit3 className="h-3.5 w-3.5" /> Edit Markdown
@@ -2245,88 +2386,82 @@ export default function Home() {
               <button
                 onClick={() => setIsSettingsOpen(true)}
                 title="Configure Google Docs integration"
-                className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400 hover:text-maroon dark:hover:text-gold hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-95 transition flex items-center gap-1.5 text-xs font-semibold"
+                className="p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-zinc-350 active:scale-95 transition flex items-center gap-1.5 text-xs font-semibold shadow-2xs"
               >
-                <Settings className="h-4 w-4" />
+                <Settings className="h-3.5 w-3.5" />
                 <span>GDocs Settings</span>
               </button>
               <button
                 onClick={copyToClipboard}
                 disabled={!minutes}
                 title="Copy markdown to clipboard"
-                className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-655 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
+                className="p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-zinc-350 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold shadow-2xs"
               >
-                {copied ? <Check className="h-4 w-4 text-emerald-500" /> : <Copy className="h-4 w-4" />}
+                {copied ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
                 <span>Copy</span>
               </button>
               <button
                 onClick={directToGoogleDocs}
                 disabled={!minutes}
-                title="Export directly to Google Docs (copies formatted text and opens docs.new)"
-                className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-655 dark:text-zinc-400 hover:text-maroon dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold text-maroon dark:text-gold border-maroon/20 dark:border-gold/20 hover:bg-maroon/5 dark:hover:bg-gold/10"
+                title="Export directly to Google Docs"
+                className="p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-red-800 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:border-red-200 dark:hover:border-red-900 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-bold shadow-2xs"
               >
-                <FileText className="h-4 w-4 text-maroon dark:text-gold" />
+                <FileText className="h-3.5 w-3.5 text-red-700 dark:text-red-400" />
                 <span>Docs</span>
               </button>
               <button
                 onClick={downloadMarkdown}
                 disabled={!minutes}
                 title="Download as Markdown (.md)"
-                className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
+                className="p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold shadow-2xs"
               >
-                <Download className="h-4 w-4" />
+                <Download className="h-3.5 w-3.5" />
                 <span>MD</span>
               </button>
               <button
                 onClick={downloadPDF}
                 disabled={!minutes}
                 title="Download formatted PDF"
-                className="p-2 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white hover:bg-zinc-50 dark:hover:bg-zinc-800 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold"
+                className="p-2 rounded-lg bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-zinc-650 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center gap-1.5 text-xs font-semibold shadow-2xs"
               >
-                <FileText className="h-4 w-4" />
+                <FileText className="h-3.5 w-3.5" />
                 <span>PDF</span>
               </button>
             </div>
           </div>
 
-          {/* Preview/Edit Content Area */}
-          <div className="flex-1 md:overflow-y-auto p-6 md:p-8 min-h-[400px] md:min-h-0">
+          {/* Preview/Edit Content Area - Granola Paper View */}
+          <div className="flex-1 md:overflow-y-auto p-4 md:p-8 min-h-[400px] md:min-h-0">
             {isLoading ? (
               // Pulse Skeleton Screen
-              <div className="space-y-6 animate-pulse">
-                <div className="h-8 bg-zinc-800 rounded-md w-3/4"></div>
-                <div className="h-4 bg-zinc-850 rounded-md w-1/3 mt-2"></div>
-                <hr className="border-zinc-800 my-6" />
+              <div className="max-w-4xl mx-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-8 md:p-12 shadow-xs space-y-6 animate-pulse">
+                <div className="h-8 bg-zinc-200 dark:bg-zinc-800 rounded-md w-3/4"></div>
+                <div className="h-4 bg-zinc-150 dark:bg-zinc-850 rounded-md w-1/3 mt-2"></div>
+                <hr className="border-zinc-200 dark:border-zinc-800 my-6" />
                 <div className="space-y-4">
-                  <div className="h-4 bg-zinc-800 rounded-md w-1/4"></div>
+                  <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md w-1/4"></div>
                   <div className="space-y-2 pl-4">
-                    <div className="h-3.5 bg-zinc-850 rounded-md w-5/6"></div>
-                    <div className="h-3.5 bg-zinc-850 rounded-md w-4/6"></div>
+                    <div className="h-3.5 bg-zinc-150 dark:bg-zinc-850 rounded-md w-5/6"></div>
+                    <div className="h-3.5 bg-zinc-150 dark:bg-zinc-850 rounded-md w-4/6"></div>
                   </div>
                 </div>
                 <div className="space-y-4 mt-8">
-                  <div className="h-4 bg-zinc-800 rounded-md w-1/3"></div>
+                  <div className="h-4 bg-zinc-200 dark:bg-zinc-800 rounded-md w-1/3"></div>
                   <div className="space-y-2 pl-4">
-                    <div className="h-3.5 bg-zinc-850 rounded-md w-full"></div>
-                    <div className="h-3.5 bg-zinc-850 rounded-md w-11/12"></div>
-                    <div className="h-3.5 bg-zinc-850 rounded-md w-4/5"></div>
-                  </div>
-                </div>
-                <div className="space-y-4 mt-8">
-                  <div className="h-4 bg-zinc-800 rounded-md w-1/4"></div>
-                  <div className="space-y-2 pl-4">
-                    <div className="h-3.5 bg-zinc-850 rounded-md w-2/3"></div>
+                    <div className="h-3.5 bg-zinc-150 dark:bg-zinc-850 rounded-md w-full"></div>
+                    <div className="h-3.5 bg-zinc-150 dark:bg-zinc-850 rounded-md w-11/12"></div>
+                    <div className="h-3.5 bg-zinc-150 dark:bg-zinc-850 rounded-md w-4/5"></div>
                   </div>
                 </div>
               </div>
             ) : minutes ? (
               activeTab === 'preview' ? (
-                // Styled Markdown Viewer
-                <div className="space-y-6">
+                // Styled Markdown Viewer in Clean Paper Sheet
+                <div className="max-w-4xl mx-auto bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 md:p-12 shadow-sm space-y-6">
                   {attendanceTally && (
-                    <div className="p-4 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-255 dark:border-zinc-800 shadow-sm space-y-3">
+                    <div className="p-4 rounded-xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 shadow-2xs space-y-3">
                        <div className="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-2">
-                        <h4 className="text-xs font-bold text-maroon dark:text-gold uppercase tracking-wider flex items-center gap-1.5">
+                        <h4 className="text-xs font-bold text-red-800 dark:text-red-400 uppercase tracking-wider flex items-center gap-1.5">
                           <Users className="h-4 w-4" /> Attendance Tally & Quorum Verification
                         </h4>
                         {(() => {
@@ -2336,8 +2471,8 @@ export default function Home() {
                           return (
                             <span className={`text-xxs px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1 border ${
                               hasQuorum 
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20' 
-                                : 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+                                ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/20' 
+                                : 'bg-red-500/10 text-red-700 dark:text-red-400 border-red-500/20'
                             }`}>
                               {hasQuorum ? <CheckCircle2 className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                               {hasQuorum ? 'Quorum Declared' : 'No Quorum'} ({activeCount}/{attendanceTally.total})
@@ -2346,31 +2481,31 @@ export default function Home() {
                         })()}
                       </div>
                       <div className="grid grid-cols-5 gap-2 text-center">
-                        <div className="bg-zinc-50 dark:bg-zinc-955 p-2 rounded-lg border border-zinc-200 dark:border-zinc-800/40">
-                          <div className="text-[10px] font-semibold text-zinc-550 dark:text-zinc-500 uppercase">Total</div>
-                          <div className="text-base font-bold text-zinc-800 dark:text-zinc-300">{attendanceTally.total}</div>
+                        <div className="bg-white dark:bg-zinc-900 p-2 rounded-lg border border-zinc-200 dark:border-zinc-800/60 shadow-2xs">
+                          <div className="text-[10px] font-semibold text-zinc-500 uppercase">Total</div>
+                          <div className="text-base font-bold text-zinc-800 dark:text-zinc-200">{attendanceTally.total}</div>
                         </div>
-                        <div className="bg-emerald-500/5 p-2 rounded-lg border border-emerald-500/10">
-                          <div className="text-[10px] font-semibold text-emerald-500 uppercase">Present</div>
-                          <div className="text-base font-bold text-emerald-400">{attendanceTally.present}</div>
+                        <div className="bg-emerald-50/60 dark:bg-emerald-950/20 p-2 rounded-lg border border-emerald-200/50 dark:border-emerald-800/30">
+                          <div className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 uppercase">Present</div>
+                          <div className="text-base font-bold text-emerald-600 dark:text-emerald-400">{attendanceTally.present}</div>
                         </div>
-                        <div className="bg-yellow-500/5 p-2 rounded-lg border border-yellow-500/10">
-                          <div className="text-[10px] font-semibold text-yellow-550 uppercase">Late</div>
-                          <div className="text-base font-bold text-yellow-400">{attendanceTally.late}</div>
+                        <div className="bg-amber-50/60 dark:bg-amber-950/20 p-2 rounded-lg border border-amber-200/50 dark:border-amber-800/30">
+                          <div className="text-[10px] font-semibold text-amber-700 dark:text-amber-400 uppercase">Late</div>
+                          <div className="text-base font-bold text-amber-600 dark:text-amber-400">{attendanceTally.late}</div>
                         </div>
-                        <div className="bg-blue-500/5 p-2 rounded-lg border border-blue-500/10">
-                          <div className="text-[10px] font-semibold text-blue-500 uppercase">Excused</div>
-                          <div className="text-base font-bold text-blue-400">{attendanceTally.excused}</div>
+                        <div className="bg-blue-50/60 dark:bg-blue-950/20 p-2 rounded-lg border border-blue-200/50 dark:border-blue-800/30">
+                          <div className="text-[10px] font-semibold text-blue-700 dark:text-blue-400 uppercase">Excused</div>
+                          <div className="text-base font-bold text-blue-600 dark:text-blue-400">{attendanceTally.excused}</div>
                         </div>
-                        <div className="bg-red-500/5 p-2 rounded-lg border border-red-500/10">
-                          <div className="text-[10px] font-semibold text-red-550 uppercase">Absent</div>
-                          <div className="text-base font-bold text-red-400">{attendanceTally.absent}</div>
+                        <div className="bg-rose-50/60 dark:bg-rose-950/20 p-2 rounded-lg border border-rose-200/50 dark:border-rose-800/30">
+                          <div className="text-[10px] font-semibold text-rose-700 dark:text-rose-400 uppercase">Absent</div>
+                          <div className="text-base font-bold text-rose-600 dark:text-rose-400">{attendanceTally.absent}</div>
                         </div>
                       </div>
                     </div>
                   )}
 
-                  <div className={`prose ${theme === 'dark' ? 'prose-invert prose-zinc' : 'prose-slate'} max-w-none pb-12 selection:bg-maroon/20 dark:selection:bg-gold/30`}>
+                  <div className={`prose ${theme === 'dark' ? 'prose-invert prose-zinc' : 'prose-slate'} max-w-none pb-8 selection:bg-red-500/20`}>
                     <ReactMarkdown components={markdownComponents}>
                       {minutes}
                     </ReactMarkdown>
@@ -2378,13 +2513,13 @@ export default function Home() {
                 </div>
               ) : (
                 // Raw Markdown Editor
-                <div className="h-full flex flex-col">
+                <div className="max-w-4xl mx-auto h-full flex flex-col">
                   <textarea
                     value={minutes}
                     onChange={(e) => setMinutes(e.target.value)}
-                    className="w-full flex-1 min-h-[400px] p-6 rounded-xl bg-white dark:bg-zinc-955 border border-zinc-205 dark:border-zinc-800 text-sm text-zinc-800 dark:text-zinc-300 font-mono focus:outline-none focus:border-maroon dark:focus:border-gold transition resize-none leading-relaxed shadow-inner"
+                    className="w-full flex-1 min-h-[450px] p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 text-sm text-zinc-800 dark:text-zinc-200 font-mono focus:outline-none focus:border-red-700 dark:focus:border-red-500 transition resize-none leading-relaxed shadow-sm"
                   />
-                  <p className="text-xxs text-zinc-555 dark:text-zinc-500 mt-2 font-mono">
+                  <p className="text-xxs text-zinc-400 dark:text-zinc-500 mt-2 font-mono">
                     Note: Editing here updates the active preview state. Downloading or copying will export these current changes.
                   </p>
                 </div>
@@ -2392,26 +2527,25 @@ export default function Home() {
             ) : (
               // Empty State Placeholder
               <div className="h-full flex flex-col items-center justify-center text-center p-6">
-                <div className="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900 p-5 rounded-2xl mb-4 relative shadow-md group hover:border-zinc-350 dark:hover:border-zinc-800 transition">
-                  <div className="absolute -inset-0.5 bg-gradient-to-tr from-maroon to-gold/90 rounded-2xl opacity-5 dark:opacity-10 blur group-hover:opacity-10 dark:group-hover:opacity-20 transition duration-300"></div>
-                  <FileText className="h-10 w-10 text-zinc-400 dark:text-zinc-550 group-hover:text-maroon dark:group-hover:text-gold transition" />
+                <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-5 rounded-2xl mb-4 relative shadow-xs group hover:border-zinc-350 dark:hover:border-zinc-700 transition">
+                  <FileText className="h-10 w-10 text-zinc-400 group-hover:text-red-700 dark:group-hover:text-red-400 transition" />
                 </div>
-                <h3 className="text-base font-semibold text-zinc-700 dark:text-zinc-300">No Minutes Generated Yet</h3>
-                <p className="text-xs text-zinc-550 dark:text-zinc-500 max-w-sm mt-2 leading-relaxed">
-                  Provide meeting notes on the left panel or click one of the quick test sample buttons to generate your structured meeting minutes.
+                <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">No Minutes Generated Yet</h3>
+                <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-sm mt-1.5 leading-relaxed">
+                  Select a <strong className="text-red-800 dark:text-red-400 font-semibold">Meeting Recipe</strong> or paste rough shorthand notes on the left panel to generate your structured meeting minutes.
                 </p>
 
-                <div className="mt-8 grid grid-cols-1 gap-3 max-w-xs text-left w-full">
-                  <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
-                    <span className="h-5 w-5 rounded-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">1</span>
-                    <span>Fill meeting metadata</span>
+                <div className="mt-8 grid grid-cols-1 gap-2.5 max-w-xs text-left w-full">
+                  <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xs">
+                    <span className="h-5 w-5 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xxs font-bold text-red-700 dark:text-red-400">1</span>
+                    <span>Choose a recipe or upload .docx</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
-                    <span className="h-5 w-5 rounded-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">2</span>
-                    <span>Upload .docx file or write raw notes</span>
+                  <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xs">
+                    <span className="h-5 w-5 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xxs font-bold text-red-700 dark:text-red-400">2</span>
+                    <span>Type fast shorthand or dictation notes</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400">
-                    <span className="h-5 w-5 rounded-full bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 flex items-center justify-center text-xxs font-semibold text-zinc-500">3</span>
+                  <div className="flex items-center gap-3 text-xs text-zinc-600 dark:text-zinc-400 bg-white dark:bg-zinc-900/60 p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-2xs">
+                    <span className="h-5 w-5 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xxs font-bold text-red-700 dark:text-red-400">3</span>
                     <span>Click "Generate structured MoM"</span>
                   </div>
                 </div>
