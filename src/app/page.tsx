@@ -1855,9 +1855,9 @@ B. Campus Operations and Advisory Resolution:
           
           {/* Top Logo */}
           <div className="hidden md:flex items-center w-full bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 p-2.5 rounded-xl shadow-xs mb-2 whitespace-nowrap">
-            <Sparkles className="h-5 w-5 shrink-0 text-red-700 dark:text-red-400" />
+            <FileText className="h-5 w-5 shrink-0 text-red-700 dark:text-red-400" />
             <span className="ml-3 text-xs font-bold font-sans tracking-wider text-zinc-900 dark:text-zinc-100 opacity-0 group-hover:opacity-100 transition-opacity duration-300 w-0 group-hover:w-auto overflow-hidden">
-              SECRETARY <span className="text-red-700 dark:text-red-400 font-extrabold">AI</span>
+              SSG <span className="text-red-700 dark:text-red-400 font-extrabold">SECRETARIAT</span>
             </span>
           </div>
 
@@ -2338,7 +2338,7 @@ B. Campus Operations and Advisory Resolution:
               {isLoading ? (
                 <>
                   <RefreshCw className="h-4 w-4 animate-spin text-red-500 dark:text-red-600" />
-                  <span>AI Secretary is writing minutes...</span>
+                  <span>Secretariat is writing minutes...</span>
                 </>
               ) : (
                 <>
