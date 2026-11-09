@@ -34,7 +34,7 @@ An AI-powered Minutes of the Meeting (MoM) generator built with **Next.js**, **T
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/<your-username>/<your-repo-name>.git
+   git clone https://github.com/Huginn45/ssg-mom-generator.git
    cd mom-generator
    ```
 
@@ -59,6 +59,33 @@ An AI-powered Minutes of the Meeting (MoM) generator built with **Next.js**, **T
    ```
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+---
+
+## 🌐 Deploy to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FHuginn45%2Fssg-mom-generator&env=GEMINI_API_KEY&envDescription=Google%20Gemini%20API%20Key%20from%20Google%20AI%20Studio)
+
+### Method 1: 1-Click / Dashboard Import (Recommended)
+1. Go to [vercel.com/new](https://vercel.com/new).
+2. Connect your GitHub account and select **`Huginn45/ssg-mom-generator`**.
+3. Under **Environment Variables**, add:
+   - **Name**: `GEMINI_API_KEY`
+   - **Value**: Your Google Gemini API Key from [Google AI Studio](https://aistudio.google.com/)
+4. Click **Deploy**. Vercel will build and host the application on a free `.vercel.app` domain. Any future pushes to `main` will automatically trigger a new deployment.
+
+### Method 2: Vercel CLI
+If you prefer deploying directly from your terminal:
+```bash
+# Log in to Vercel
+npx vercel login
+
+# Deploy to preview
+npx vercel
+
+# Deploy to production
+npx vercel --prod
+```
 
 ---
 
